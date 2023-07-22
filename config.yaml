@@ -1,0 +1,21 @@
+numerical_variables:
+  - age
+  - hypertension
+  - heart_disease
+  - bmi
+  - HbA1c_level
+  - blood_glucose_level
+
+categorical_variables:
+  - gender
+  - smoking_history
+
+s3_folder_path: ./data
+dataset_folder_path: ./data/raw
+
+target_variable: diabetes
+dataset_path: ./data/raw/diabetes_prediction_dataset.csv
+train_path: ./data/processed/train.parquet
+valid_path: ./data/processed/valid.parquet
+test_path: ./data/processed/test.parquet
+
