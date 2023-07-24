@@ -30,4 +30,5 @@ deployments:
   }
   work_pool:
     name: train-pool
-  schedule: null
+  schedule:
+    cron: 0 0 * * *

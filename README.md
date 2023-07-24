@@ -23,4 +23,19 @@ pipenv run mlflow server --backend-store-uri sqlite:///backend.db
 pipenv run prefect server start
 ```
 
-4. 
+4. Deploy the work-flow named **deploy_train** and Create the work-pool named **train_pool**. **Warning:** This is only needed for the first time. If you rerun this flow again, you can skip this skip.
+```bash
+pipenv shell
+bash setup_prefect.sh
+```
+
+5. Start the work-pool in terminal 3. 
+```bash
+pipenv run prefect worker start --pool 'train-pool'
+```
+
+6. Run this deploynamed named **deploy_train** in terminal 4. 
+```bash
+pipenv run prefect deployment run 'training_pipeline/deploy_train'
+```
+
