@@ -16,10 +16,10 @@ from mlflow.entities import ViewType
 from prefect import task, flow, get_run_logger
 from datetime import datetime
 
-# from prefect_aws import S3Bucket
+from prefect_aws import S3Bucket
 
 experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
-MLFLOW_TRACKING_URI = "sqlite:///backend.db"
+MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
 mlflow.set_experiment(experiment_name)
@@ -45,19 +45,19 @@ def load_config(config_path):
 
     return config
 
-# @task
-# def download_s3_data(
-#     s3_bucket_block, 
-#     s3_folder_path, 
-#     dataset_folder_path
-#     ):
-#     s3_bucket_block = S3Bucket.load(s3_bucket_block)
-#     s3_bucket_block.download_folder_to_path(
-#         from_folder=s3_folder_path, 
-#         to_folder=dataset_folder_path,
-#         )
+@task
+def download_s3_data(
+    s3_bucket_block, 
+    s3_folder_path, 
+    dataset_folder_path
+    ):
+    s3_bucket_block = S3Bucket.load(s3_bucket_block)
+    s3_bucket_block.download_folder_to_path(
+        from_folder=s3_folder_path, 
+        to_folder=dataset_folder_path,
+        )
 
-#     return None
+    return None
 
 @task
 def load_data(file_path):
@@ -235,7 +235,7 @@ def train(config_path):
     logger.info("Loading configuration")
     config = load_config(config_path)
 
-    s3_folder_path = config["s3_folder_path"]
+    # s3_folder_path = config["s3_folder_path"]
     dataset_folder_path = config["dataset_folder_path"]
     dataset_path = config["dataset_path"]
     train_path = config["train_path"]
@@ -243,9 +243,9 @@ def train(config_path):
     test_path = config["test_path"]
     target_var = config["target_variable"]
 
-    # if not local:
-    #     logger.info("Downloading the data from s3")
-    #     download_s3_data("s3-final-pj", s3_folder_path, dataset_folder_path)
+    # will download from s3
+    # logger.info("Downloading the data from s3")
+    # download_s3_data("s3-final-pj", s3_folder_path, dataset_folder_path)
 
     logger.info("Loading the data")
     df = load_data(dataset_path)
