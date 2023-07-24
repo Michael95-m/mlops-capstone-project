@@ -163,6 +163,8 @@ data/*/*.parquet
 model
 mlruns
 backend.db
+mlartifacts
+Makefile
 
 
 
