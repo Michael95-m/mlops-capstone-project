@@ -1,0 +1,33 @@
+# Welcome to your prefect.yaml file! You can you this file for storing and managing
+# configuration for deploying your flows. We recommend committing this file to source
+# control along with your flow code.
+
+# Generic metadata about this project
+name: mlops-capstone-project
+prefect-version: 2.11.0
+
+# build section allows you to manage and build docker images
+build: null
+
+# push section allows you to manage if and how this project is uploaded to remote locations
+push: null
+
+# pull section allows you to provide instructions for cloning this project in remote locations
+pull:
+- prefect.deployments.steps.git_clone:
+    repository: https://github.com/Michael95-m/mlops-capstone-project.git
+    branch: main
+
+# the deployments section allows you to provide configuration for deploying flows
+deployments:
+- name: deploy_train
+  version: null
+  tags: []
+  description: null
+  entrypoint: pipeline/training_pipeline.py:train
+  parameters: {
+    "config_path": "config.yaml"
+  }
+  work_pool:
+    name: train-pool
+  schedule: null

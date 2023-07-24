@@ -19,7 +19,7 @@ from datetime import datetime
 from prefect_aws import S3Bucket
 
 experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
-MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_EXPERIMENT_URI", "http://127.0.0.1:5000")
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
 mlflow.set_experiment(experiment_name)
@@ -120,7 +120,8 @@ def hpo(
     X_train,
     y_train,
     X_valid, 
-    y_valid
+    y_valid,
+    n_trials=3
     ):
     
     dtrain = xgb.DMatrix(X_train, label=y_train)
@@ -175,7 +176,7 @@ def hpo(
 
     # Create an Optuna study and optimize the objective function
     study = optuna.create_study(direction="maximize")
-    study.optimize(objective, n_trials=10)
+    study.optimize(objective, n_trials=n_trials)
 
     return None
 
@@ -236,7 +237,7 @@ def train(config_path):
     config = load_config(config_path)
 
     # s3_folder_path = config["s3_folder_path"]
-    dataset_folder_path = config["dataset_folder_path"]
+    # dataset_folder_path = config["dataset_folder_path"]
     dataset_path = config["dataset_path"]
     train_path = config["train_path"]
     valid_path = config["valid_path"]
