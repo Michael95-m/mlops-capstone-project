@@ -1,3 +1,5 @@
 ## Plans to implement
 
--[] Explore dataset 
+- [ ] Prototyping
+- [ ] Experiment Tracking
+- [ ] 
