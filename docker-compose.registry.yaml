@@ -1,0 +1,25 @@
+version: '3.7'
+services:
+  mlflow_server:
+    restart: always
+    build: 
+      context: ./pipeline
+      dockerfile: Dockerfile.mlflow
+    image: mlflow_server
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
+    networks:
+      - backend
+    volumes:
+      - /tmp/mlopsdb:/tmp/mlopsdb
+      - /tmp/mlopsartifacts:/tmp/mlopsartifacts
+      - /tmp/store:/tmp/store
+
+volumes:
+  mlflow_data: {}
+
+
+networks:
+    backend:
+        driver: bridge
