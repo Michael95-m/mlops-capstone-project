@@ -1,0 +1,50 @@
+version: '3.7'
+services:
+  mlflow_server:
+    restart: always
+    build: 
+      context: ./pipeline
+      dockerfile: Dockerfile.mlflow
+    image: mlflow_server
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
+    networks:
+      - backend
+    volumes:
+      - /tmp/mlopsdb:/tmp/mlopsdb
+      - /tmp/mlopsartifacts:/tmp/mlopsartifacts
+      - /tmp/store:/tmp/store
+
+  diabetes_service:
+    restart:  always
+    build: 
+      context: ./deployment
+      dockerfile: Dockerfile.diabetes_service
+    image: diabetes_service
+    container_name: diabetes_service
+    environment:
+      - MLFLOW_EXPERIMENT_URI=http://mlflow_server:5000
+    volumes:
+      - /tmp/mlopsdb:/tmp/mlopsdb
+      - /tmp/mlopsartifacts:/tmp/mlopsartifacts
+      - /tmp/store:/tmp/store
+      - /tmp/serve:/tmp/serve
+    depends_on:
+      - mlflow_server
+    ports:
+      - "5010:5010"
+    networks:
+      - backend
+    
+
+volumes:
+  mlflow_data: {}
+
+
+networks:
+    backend:
+        driver: bridge
+
+
+      
