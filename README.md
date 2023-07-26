@@ -25,7 +25,6 @@ pipenv run prefect server start
 
 4. Deploy the work-flow named **deploy_train** and Create the work-pool named **train_pool**. **Warning:** This is only needed for the first time. If you rerun this flow again, you can skip this skip.
 ```bash
-pipenv shell
 bash setup_prefect.sh
 ```
 

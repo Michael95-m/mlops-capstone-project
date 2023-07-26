@@ -4,11 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-mlflow = "*"
+mlflow = "==2.5.0"
 xgboost = "*"
 optuna = "*"
 prefect-aws = "*"
 prefect = "*"
+flask = "==2.3.2"
+gunicorn = "*"
 
 [dev-packages]
 
