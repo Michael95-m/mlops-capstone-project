@@ -18,10 +18,27 @@ services:
       - "5010:5010"
     networks:
       - backend
+      - external
+
+  send_data_api:
+    restart: always
+    depends_on:
+      - diabetes_service
+    build:
+      context: ./simulation_business
+      dockerfile: Dockerfile.send_data_api
+    image:  send_data_api
+    container_name: send_data_api
+    environment:
+      - SERVE_ADDRESS=http://diabetes_service:5010
+    networks:
+      - external
 
 
 networks:
     backend:
+        driver: bridge
+    external:
         driver: bridge
 
 

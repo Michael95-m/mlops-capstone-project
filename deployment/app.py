@@ -25,14 +25,16 @@ app = Flask("Diabetes-Prediction")
 @app.route("/predict", methods=["POST"])
 def predict_endpoint():
     health = request.get_json()
+    logging.debug(f"\nExample payload is: {health}")
 
     pred = model_service.predict(health)
-    logging.debug(f"Prediction result is {pred}")
 
     result = {
         "diabetes chance": f"{float(pred[0]) * 100:.2f}",
         "model_version": run_id
     }
+
+    logging.debug(f"Prediction result is {result}\n")
 
     return jsonify(result)
 
