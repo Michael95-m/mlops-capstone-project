@@ -9,7 +9,7 @@
 - [X] Model is deployed using flask and gunicorn
 - [X] Containerizing the deployment code
 - [ ] Create infrastrcture for deployment using terraform
-- [ ] Basic model monitoring that calculates and reports metrics
+- [X] Basic model monitoring that calculates and reports metrics
 - [ ] Comprehensive model monitoring that sends alerts or runs some conditional workflow
 - [ ] Write the instructions for reproducibility
 - [ ] Unit Tests
