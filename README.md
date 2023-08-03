@@ -2,7 +2,7 @@
 
 The project is still in progress. Some components are still needed to be implemented. You can see the complete system design below.
 
-<img src="docs/system_design.png"><br>
+<img src="docs/system_design.png" width="500" height="300"><br>
 
 ## Training Pipeline
 
@@ -57,5 +57,34 @@ pipenv run prefect deployment run 'training_pipeline/deploy_train'
 
 ## Model Monitoring
 
-To be Continued
+1. You need to up the services inside `docker-compose.registry.yaml` and `docker-compose.serve.yaml` as the prerequisites. This following command can be run to setup the services.
+```shell
+docker compose -f docker-compose.registry.yaml -f docker-compose.serve.yaml up -d
+```
+
+2. Then, you also need to run the services inside `docker-compose.monitoring.yaml`
+```shell
+docker compose -f docker-compose.monitoring.yaml up -d
+```
+
+3. After that, go to **monitoring** folder and  you have to create the table named **prediction_log** inside the database named **production**. 
+```shell
+cd monitoring
+python create_db.py
+```
+
+4. Then you have to prepare reference data for monitoring by using the script named `prepare_reference_data.py`.
+```shell
+python prepare_reference_data.py
+```
+
+5. You have to make simulation about sending data to api by running this script.
+```shell
+python send_data_api.py
+```
+
+After that, you need to take some time to have the data inside prediction_log table inside the database.
+
+
+
 
