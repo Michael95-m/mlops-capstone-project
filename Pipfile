@@ -11,6 +11,12 @@ prefect-aws = "*"
 prefect = "*"
 flask = "==2.3.2"
 gunicorn = "*"
+evidently = "*"
+psycopg-binary = "*"
+pyarrow = "*"
+streamlit = "*"
+psycopg2 = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 
