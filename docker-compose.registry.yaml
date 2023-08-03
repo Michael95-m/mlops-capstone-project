@@ -1,68 +1,25 @@
 version: '3.7'
 services:
-  prefect_db:
-    image: postgres:15.2-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=prefect
-    expose:
-      - 5432
-    networks:
-      - backend
-    volumes: 
-      - db:/var/lib/postgresql/data
-    profiles: ["server"]
-
   mlflow_server:
     restart: always
-    build: 
+    build:
       context: ./pipeline
       dockerfile: Dockerfile.mlflow
+      args:
+        - "MLFLOW_TRACKING_DIRECTORY=${HOME}/mnt/mlruns"
     image: mlflow_server
     container_name: mlflow_server
     ports:
       - "5000:5000"
+    volumes:
+      - "${HOME}/mnt/mlruns:${HOME}/mnt/mlruns"
     networks:
       - backend
-    volumes:
-      - /tmp/mlopsdb:/tmp/mlopsdb
-      - /tmp/mlopsartifacts:/tmp/mlopsartifacts
-      - /tmp/store:/tmp/store
-
-  prefect_server:
-    restart:  always
-    build: 
-      context: ./pipeline
-      dockerfile: Dockerfile.prefect
-    image: prefect_server
-    container_name: prefect_server
-    ports:
-      - 4200:4200
-    networks:
-      - backend
-    environment:
-      - PREFECT_UI_URL=http://127.0.0.1:4200/api
-      - PREFECT_API_URL=http://127.0.0.1:4200/api
-      - PREFECT_SERVER_API_HOST=0.0.0.0
-      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://postgres:postgres@database:5432/prefect
-    volumes:
-      - /tmp/mlopsdb:/tmp/mlopsdb
-      - /tmp/mlopsartifacts:/tmp/mlopsartifacts
-      - /tmp/store:/tmp/store
-    depends_on:
-      - prefect_db
-    profiles: ["server"]
-
     
-
 volumes:
   mlflow_data: {}
-  prefect_server_data: {}
-  db: {}
 
 
 networks:
     backend:
-        driver: bridge
+      driver: bridge

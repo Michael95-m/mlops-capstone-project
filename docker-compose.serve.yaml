@@ -1,4 +1,8 @@
 version: '3.7'
+networks:
+    backend:
+      driver: bridge
+
 services:
   diabetes_service:
     restart:  always
@@ -10,36 +14,13 @@ services:
     environment:
       - MLFLOW_EXPERIMENT_URI=http://mlflow_server:5000
     volumes:
-      - /tmp/mlopsdb:/tmp/mlopsdb
-      - /tmp/mlopsartifacts:/tmp/mlopsartifacts
-      - /tmp/store:/tmp/store
-      - /tmp/serve:/tmp/serve
+      - "${HOME}/mnt/serve:${HOME}/mnt/serve"
+      - "${HOME}/mnt/mlruns:${HOME}/mnt/mlruns"
     ports:
       - "5010:5010"
     networks:
       - backend
-      - external
-
-  send_data_api:
-    restart: always
-    depends_on:
-      - diabetes_service
-    build:
-      context: ./simulation_business
-      dockerfile: Dockerfile.send_data_api
-    image:  send_data_api
-    container_name: send_data_api
-    environment:
-      - SERVE_ADDRESS=http://diabetes_service:5010
-    networks:
-      - external
-
-
-networks:
-    backend:
-        driver: bridge
-    external:
-        driver: bridge
+        
 
 
       
