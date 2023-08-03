@@ -164,7 +164,6 @@ model
 mlruns
 backend.db
 mlartifacts
-Makefile
 
 
 
