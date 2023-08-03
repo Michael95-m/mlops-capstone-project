@@ -1,0 +1,75 @@
+version: '3.7'
+
+volumes: 
+  grafana_data: {}
+  monitoring_db_data: {}
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+services:
+  db:
+    image: postgres
+    container_name: monitoring_db
+    restart: always
+    environment:
+      POSTGRES_USER:  "admin"
+      POSTGRES_PASSWORD: "example"
+      POSTGRES_DB:  "production"
+    ports:
+      - "5432:5432"
+    volumes:
+      - monitoring_db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  adminer:
+    image: adminer
+    container_name: monitoring_adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+      - frontend  
+
+  monitoring_service:
+    restart: always
+    build: 
+      context: ./monitoring
+      dockerfile: Dockerfile.monitoring
+    image:  monitoring_service
+    container_name: monitoring_service
+    environment:
+      - DB_ADDRESS=monitoring_db
+      - SERVE_ADDRESS=http://diabetes_service:5010
+    depends_on:
+      - db
+    ports:
+      - "5020:5020"
+    networks:
+      - backend
+
+  streamlit_service:
+    restart:  always
+    build:
+      context: ./streamlit_app
+      dockerfile: Dockerfile.streamlit
+    image:  streamlit_service
+    container_name: streamlit_service
+    environment:
+      - MONITOR_SERVE_ADDRESS=http://monitoring_service:5020
+    depends_on:
+      - monitoring_service
+    ports:
+      - "8501:8501"
+    networks:
+      - backend
+      - frontend
+    
+
+
+
