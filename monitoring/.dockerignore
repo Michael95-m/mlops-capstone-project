@@ -1,0 +1,8 @@
+__pycache__
+reports/*.html
+data/*.parquet
+!data/valid.parquet
+!data/test.parquet
+test.py 
+send_data_api.py
+Dockerfile.monitoring

@@ -1,0 +1,11 @@
+numerical_variables:
+  - age
+  - hypertension
+  - heart_disease
+  - bmi
+  - HbA1c_level
+  - blood_glucose_level
+
+categorical_variables:
+  - gender
+  - smoking_history

@@ -1,0 +1,9 @@
+sqlalchemy==2.0.19
+requests==2.31.0
+pandas==2.0.3
+psycopg2-binary
+tqdm==4.65.0
+pyarrow==12.0.1
+flask==2.3.2
+evidently==0.4.0
+gunicorn
