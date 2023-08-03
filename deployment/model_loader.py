@@ -27,10 +27,11 @@ def download_artifacts(run_id, artifact_path, dst_path):
 class ModelLoader:
 
     def __init__(self):
+        home_directory = os.environ.get("HOME")
         self.mlflow_tracking_uri = os.getenv("MLFLOW_EXPERIMENT_URI", "http://0.0.0.0:5000")
         self.model_name = os.getenv("MODEL_NAME", "diabetes-classifier")
         self.experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
-        self.local_serve_folder = os.getenv("LOCAL_SERVER_FOLDER", "/tmp/serve")
+        self.local_serve_folder = os.getenv("LOCAL_SERVER_FOLDER", f"{home_directory}/mnt/serve")
 
         mlflow.set_tracking_uri(self.mlflow_tracking_uri)
         mlflow.set_experiment(self.experiment_name)
