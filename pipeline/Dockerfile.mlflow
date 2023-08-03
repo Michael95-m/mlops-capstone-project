@@ -1,14 +1,14 @@
 FROM python:3.9-slim
 
-COPY requirements_mlflow.txt .
-RUN pip install -r requirements_mlflow.txt
+ARG MLFLOW_TRACKING_DIRECTORY
+ENV MLFLOW_TRACKING_DIRECTORY=${MLFLOW_TRACKING_DIRECTORY}
 
-RUN mkdir /tmp/mlops
-WORKDIR /tmp/mlops
+# Install python packages
+COPY requirements_mlflow.txt /tmp
+RUN pip install -r /tmp/requirements_mlflow.txt
+RUN echo ${MLFLOW_TRACKING_DIRECTORY} > test.txt
 
-RUN mkdir /tmp/mlopsdb
-RUN mkdir /tmp/mlopsartifacts
-
-EXPOSE 5000
-
-CMD ["mlflow", "server", "--backend-store-uri", "sqlite:////tmp/mlopsdb/mlflow.db", "--default-artifact-root", "file:///tmp/mlopsartifacts", "--host", "0.0.0.0"]
+CMD mlflow server \
+    --backend-store-uri sqlite:///${MLFLOW_TRACKING_DIRECTORY}/tracking/mlflow.db \
+    --default-artifact-root ${MLFLOW_TRACKING_DIRECTORY}/artifacts \
+    --host 0.0.0.0

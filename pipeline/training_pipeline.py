@@ -38,14 +38,14 @@ def f1_eval(y_pred, dtrain):
     y_pred = (y_pred > 0.5).astype(int)
     return 'f1', f1_score(y_true, y_pred)
 
-@task 
+@task(retries=2, retry_delay_seconds=5)
 def load_config(config_path):
     with open(config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
     return config
 
-@task
+@task(retries=2, retry_delay_seconds=5)
 def download_s3_data(
     s3_bucket_block, 
     s3_folder_path, 
@@ -59,7 +59,7 @@ def download_s3_data(
 
     return None
 
-@task
+@task(retries=2, retry_delay_seconds=5)
 def load_data(file_path):
 
     df = pd.read_csv(file_path)
@@ -133,7 +133,6 @@ def hpo(
             
             params = {
                 "objective": "binary:logistic",
-                "booster": trial.suggest_categorical("booster", ["gbtree", "dart"]),
                 "max_depth": trial.suggest_int("max_depth", 3, 10),
                 "subsample": trial.suggest_float("subsample", 0.5, 1.0),
                 "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
@@ -193,7 +192,6 @@ def search_best_model(experiment_name):
 
 @task
 def register_best_model(model_meta_data, model_name="diabetes-classifier"):
-    
     best_model_id = model_meta_data.info.run_id
     best_model_uri = f"runs:/{best_model_id}/model"
 
@@ -203,6 +201,35 @@ def register_best_model(model_meta_data, model_name="diabetes-classifier"):
     )
 
     return reg_model_meta_data
+
+def get_latest_version_model(
+    model_name="diabetes-classifier",
+    stage="production"
+):
+
+    latest_version = client.get_latest_versions(name=model_name, stages=[stage])
+
+    return latest_version
+
+@task(name="Model Comparision")
+def compare_models(
+    prod_model,
+    best_model_meta_data
+):
+    prod_model_run_id = prod_model[0].run_id
+    prod_model_metrics_data = client.get_metric_history(
+        prod_model_run_id, 
+        key="f1_score")   
+    prod_model_metrics = prod_model_metrics_data[0].value
+    
+    best_model_metrics = best_model_meta_data.data.metrics['f1_score']
+
+    if best_model_metrics > prod_model_metrics:
+        is_register = True
+    else:
+        is_register = False
+
+    return is_register
 
 @task
 def transition_model_stage(
@@ -243,6 +270,7 @@ def train(config_path):
     valid_path = config["valid_path"]
     test_path = config["test_path"]
     target_var = config["target_variable"]
+    trials = config["trials"]
 
     # will download from s3
     # logger.info("Downloading the data from s3")
@@ -258,16 +286,29 @@ def train(config_path):
     X_train, y_train, X_valid, y_valid = process_features(train_path, valid_path, target_var)
     
     logger.info("Hyperparameter Tuning with XGBoost model")
-    hpo(X_train, y_train, X_valid, y_valid)
+    hpo(X_train, y_train, X_valid, y_valid, trials)
 
     logger.info("Searching the best model")
     best_model_meta_data = search_best_model(experiment_name)
 
-    logger.info("Registering the best model")
-    reg_model_meta_data = register_best_model(model_meta_data=best_model_meta_data)
+    register_models = client.search_registered_models()
 
-    logger.info("Transition the best model to the production stage")
-    transition_model_stage(reg_model_meta_data)
+    if len(register_models) == 0:
+        is_register = True 
+    else:
+        prod_model = get_latest_version_model()
+        is_register = compare_models(
+           prod_model=prod_model,
+           best_model_meta_data=best_model_meta_data  
+        )
+
+    if is_register:
+        logger.info("Registering the best model")
+        reg_model_meta_data = register_best_model(model_meta_data=best_model_meta_data)
+
+        logger.info("Transition the best model to the production stage")
+        transition_model_stage(reg_model_meta_data)
+
 
 
 if __name__ == "__main__":
