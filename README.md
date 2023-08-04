@@ -2,7 +2,7 @@
 
 The project is still in progress. Some components are still needed to be implemented. You can see the complete system design below.
 
-<img src="docs/system_design.png" width="500" height="300"><br>
+![drawing|4526x2790](docs/system_design.png)<br>
 
 ## Training Pipeline
 
