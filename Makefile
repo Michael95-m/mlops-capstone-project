@@ -20,5 +20,27 @@ reset-model-registry:
 	rm -rf ${HOME}/mnt/serve
 
 start-service:
-	docker compose -f docker-compose.serve.yaml up
+	docker compose -f docker-compose.registry.yaml -f docker-compose.serve.yaml up -d 
+
+end-service:
+	docker compose -f docker-compose.registry.yaml -f docker-compose.serve.yaml down
+
+start-monitoring-service:
+	docker compose -f docker-compose.monitoring.yaml up -d 
+
+stop-monitoring-service:
+	docker compose -f docker-compose.monitoring.yaml down
+
+start-send-data-monitoring:
+	pipenv shell python monitoring/send_data_api.py
+
+
+
+
+	
+
+
+
+
+
 	
