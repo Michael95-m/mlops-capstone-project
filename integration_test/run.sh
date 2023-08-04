@@ -11,8 +11,8 @@ pipenv run python integration_test/test_service.py
 ERROR_CODE=$?
 
 if [ ${ERROR_CODE} != 0 ]; then
-    docker compose logs
-    docker compose down
+    docker compose -f docker-compose.serve.yaml -f docker-compose.registry.yaml logs
+    docker compose -f docker-compose.serve.yaml -f docker-compose.registry.yaml down
     exit ${ERROR_CODE}
 fi
 
