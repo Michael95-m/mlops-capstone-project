@@ -1,0 +1,32 @@
+[
+    {
+        "gender": "Female",
+        "age": 74.0,
+        "hypertension": 1,
+        "heart_disease": 0,
+        "smoking_history": "not current",
+        "bmi": 30.11,
+        "HbA1c_level": 5.8,
+        "blood_glucose_level": 240
+    },
+    {
+        "gender": "Female",
+        "age": 75.0,
+        "hypertension": 0,
+        "heart_disease": 1,
+        "smoking_history": "never",
+        "bmi": 48.0,
+        "HbA1c_level": 5.8,
+        "blood_glucose_level": 160
+    },
+    {
+        "gender": "Female",
+        "age": 28.0,
+        "hypertension": 0,
+        "heart_disease": 0,
+        "smoking_history": "not current",
+        "bmi": 33.45,
+        "HbA1c_level": 8.2,
+        "blood_glucose_level": 260
+    }
+]
