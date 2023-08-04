@@ -23,7 +23,7 @@ def display_sidebar_header():
 
     with st.sidebar:
         col1, col2 = st.columns(2)
-        repo_link = '#'
+        repo_link = 'https://github.com/Michael95-m/mlops-capstone-project/tree/main'
         evidently_docs = 'https://docs.evidentlyai.com/'
         col1.markdown(
             f"<a style='display: block; text-align: center;' href={repo_link}>Source code</a>",
