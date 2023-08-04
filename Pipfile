@@ -20,6 +20,11 @@ sqlalchemy = "*"
 prefect-email = "*"
 
 [dev-packages]
+pytest = "*"
+pylint = "*"
+black = "*"
+isort = "*"
+deepdiff = "*"
 
 [requires]
 python_version = "3.9"
