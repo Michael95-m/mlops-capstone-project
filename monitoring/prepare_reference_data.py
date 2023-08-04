@@ -18,9 +18,11 @@ def predict_endpoint(payload):
     return diabetes_chance
 
 
-def prepare_reference_data(valid_data):
+def prepare_reference_data():
 
-    df = pd.read_parquet(valid_data)
+    valid_path = get_valid_path()
+
+    df = pd.read_parquet(valid_path)
     df.drop("diabetes", axis=1, inplace=True)
 
     logging.info("Preparing Reference data...")
@@ -31,5 +33,4 @@ def prepare_reference_data(valid_data):
     logging.info("Reference data is ready!!!")
 
 if __name__ == "__main__":
-    valid_path = get_valid_path()
-    prepare_reference_data(valid_path)
+    prepare_reference_data()
