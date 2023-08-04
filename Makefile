@@ -9,10 +9,6 @@ setup-model-registry:
 
 start-mlflow:
 	docker compose -f docker-compose.registry.yaml up -d
-	
-
-stop-mlflow:
-	docker compose -f docker-compose.registry.yaml down
 
 reset-model-registry:
 	rm -rf ${MLFLOW_TRACKING_DIRECTORY}/tracking
@@ -20,19 +16,39 @@ reset-model-registry:
 	rm -rf ${HOME}/mnt/serve
 
 start-service:
-	docker compose -f docker-compose.registry.yaml -f docker-compose.serve.yaml up -d 
+	docker compose -f docker-compose.registry.yaml -f docker-compose.serve.yaml up -d
 
-end-service:
-	docker compose -f docker-compose.registry.yaml -f docker-compose.serve.yaml down
+start-all-service:
+	docker compose -f docker-compose.monitoring.yaml -f docker-compose.registry.yaml \
+	-f docker-compose.serve.yaml up -d
 
 start-monitoring-service:
 	docker compose -f docker-compose.monitoring.yaml up -d 
 
+start-send-data-monitoring:
+	pipenv shell python monitoring/send_data_api.py
+
+stop-mlflow:
+	docker compose -f docker-compose.registry.yaml down
+
+stop-service:
+	docker compose -f docker-compose.registry.yaml -f docker-compose.serve.yaml down
+
 stop-monitoring-service:
 	docker compose -f docker-compose.monitoring.yaml down
 
-start-send-data-monitoring:
-	pipenv shell python monitoring/send_data_api.py
+stop-all-service:
+	docker compose -f docker-compose.monitoring.yaml -f docker-compose.registry.yaml \
+	-f docker-compose.serve.yaml down
+
+run-unit-test:
+	pipenv run pytest test/
+
+run-integration-test:
+	bash integration_test/run.sh
+
+
+
 
 
 
