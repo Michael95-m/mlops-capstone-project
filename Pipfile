@@ -17,6 +17,7 @@ pyarrow = "*"
 streamlit = "*"
 psycopg2 = "*"
 sqlalchemy = "*"
+prefect-email = "*"
 
 [dev-packages]
 
