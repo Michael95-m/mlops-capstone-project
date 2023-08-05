@@ -1,15 +1,16 @@
-from sqlalchemy import Column
-from sqlalchemy import Float, Integer, String, DateTime
-
-from sqlalchemy.orm import declarative_base
+# pylint: disable=too-few-public-methods
 from datetime import datetime
 
+from sqlalchemy import Float, Column, String, Integer, DateTime
+from sqlalchemy.orm import declarative_base
+
 Base = declarative_base()
+
 
 class PredictionTable(Base):
     """Implement table for storing features with corresponding predictions."""
 
-    __tablename__ = 'prediction_log'
+    __tablename__ = "prediction_log"
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime(timezone=True), default=datetime.now)
     gender = Column(String)

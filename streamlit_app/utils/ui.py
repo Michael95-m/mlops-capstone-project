@@ -1,7 +1,11 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
+
 def set_page_container_style():
+    """
+    Setting style for page container
+    """
     margins_css = """
     <style>
         /* Configuration of paddings of containers inside main area */
@@ -19,45 +23,53 @@ def set_page_container_style():
     """
     st.markdown(margins_css, unsafe_allow_html=True)
 
-def display_sidebar_header():
 
+def display_sidebar_header():
+    """
+    Display sidebar header.
+    """
     with st.sidebar:
         col1, col2 = st.columns(2)
-        repo_link = 'https://github.com/Michael95-m/mlops-capstone-project/tree/main'
-        evidently_docs = 'https://docs.evidentlyai.com/'
+        repo_link = "https://github.com/Michael95-m/mlops-capstone-project/tree/main"
+        evidently_docs = "https://docs.evidentlyai.com/"
         col1.markdown(
             f"<a style='display: block; text-align: center;' href={repo_link}>Source code</a>",
             unsafe_allow_html=True,
         )
         col2.markdown(
-            f"<a style='display: block; text-align: center;' href={evidently_docs}>Evidently docs</a>",
+            (
+                f"<a style='display: block; text-align: center;' "
+                f"href={evidently_docs}>Evidently docs</a>"
+            ),
             unsafe_allow_html=True,
         )
-        st.header('')
+
+        st.header("")
+
 
 def display_header(report_name, window_size):
     """Display report header.
 
     Args:
-        report_name (Text): Report name.
+        report_name (str): Report name.
         window_size (int): Size of prediction data on which report built.
     """
 
-    st.header(f'Report: {report_name}')
-    st.caption(f'Window size: {window_size}')
+    st.header(f"Report: {report_name}")
+    st.caption(f"Window size: {window_size}")
+
 
 @st.cache_data
 def display_report(report):
     """Display report.
 
     Args:
-        report (Text): Report content.
+        report (str): Report content.
 
     Returns:
-        Text: Report content.
+        str: Report content.
     """
 
     components.html(report, width=1000, height=700, scrolling=True)
 
     return report
-

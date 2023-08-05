@@ -1,5 +1,4 @@
-from typing import Callable
-
+# pylint: disable=invalid-name
 import sqlalchemy
 import sqlalchemy.orm
 from sqlalchemy.orm import sessionmaker

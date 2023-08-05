@@ -1,22 +1,21 @@
-import pandas as pd
 import os
-import numpy as np
-import yaml
 import pickle
-import mlflow
-import xgboost as xgb
-import optuna 
-
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.metrics import roc_auc_score, f1_score, precision_score, recall_score
-from mlflow.models.signature import infer_signature
-from mlflow.tracking import MlflowClient
-from mlflow.entities import ViewType
-from prefect import task, flow, get_run_logger
 from datetime import datetime
 
+import yaml
+import numpy as np
+import mlflow
+import optuna
+import pandas as pd
+import xgboost as xgb
+from prefect import flow, task, get_run_logger
 from prefect_aws import S3Bucket
+from mlflow.entities import ViewType
+from mlflow.tracking import MlflowClient
+from sklearn.metrics import f1_score, recall_score, roc_auc_score, precision_score
+from mlflow.models.signature import infer_signature
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction import DictVectorizer
 
 experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_EXPERIMENT_URI", "http://127.0.0.1:5000")
@@ -26,54 +25,79 @@ mlflow.set_experiment(experiment_name)
 
 
 def model_eval(y_true, y_pred, y_pred_prob):
+    """
+    Calculates evaluation metrics like auc, f1-score, precision and recall
+    Args:
+        y_true : actual target value
+        y_pred : predicted value
+        y_pred_prob : probability of predicted value
+    """
     auc = roc_auc_score(y_true, y_pred_prob)
     f1 = f1_score(y_true, y_pred)
     precision = precision_score(y_true, y_pred)
     recall = recall_score(y_true, y_pred)
-    
+
     return auc, f1, precision, recall
 
+
 def f1_eval(y_pred, dtrain):
+    """
+    A function which will used inside optuna objective function
+    Args:
+        y_pred : predicted value
+        dtrain : training data
+    """
     y_true = dtrain.get_label()
     y_pred = (y_pred > 0.5).astype(int)
-    return 'f1', f1_score(y_true, y_pred)
+    return "f1", f1_score(y_true, y_pred)
+
 
 @task(retries=2, retry_delay_seconds=5)
 def load_config(config_path):
+    """
+    Load the configuration path
+    Args:
+        config_path (str): A path where configuration file exists
+
+    Returns:
+        dict: the configuration
+    """
     with open(config_path, "r") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
     return config
 
+
 @task(retries=2, retry_delay_seconds=5)
-def download_s3_data(
-    s3_bucket_block, 
-    s3_folder_path, 
-    dataset_folder_path
-    ):
+def download_s3_data(s3_bucket_block, s3_folder_path, dataset_folder_path):
+    """
+    Download data from s3 data
+    Args:
+        s3_bucket_block (str): s3 bucket block from prefect
+        s3_folder_path (str): a directory path inside s3 where the data is saved
+        dataset_folder_path (str): a directory from local which will store the data
+    """
     s3_bucket_block = S3Bucket.load(s3_bucket_block)
     s3_bucket_block.download_folder_to_path(
-        from_folder=s3_folder_path, 
+        from_folder=s3_folder_path,
         to_folder=dataset_folder_path,
-        )
+    )
 
-    return None
 
 @task(retries=2, retry_delay_seconds=5)
 def load_data(file_path):
-
     df = pd.read_csv(file_path)
 
     return df
 
+
 @task
 def data_split(
-    df, 
-    train_path, 
-    valid_path, 
+    df,
+    train_path,
+    valid_path,
     test_path,
-    ):
-
+):
     train, test_val = train_test_split(df, test_size=0.25, random_state=42)
     valid, test = train_test_split(test_val, test_size=0.5, random_state=42)
 
@@ -82,16 +106,9 @@ def data_split(
     valid.to_parquet(valid_path, index=False)
     test.to_parquet(test_path, index=False)
 
-    return None
 
 @task
-def process_features(
-    train_path, 
-    valid_path, 
-    target_var, 
-    save_dv=True
-    ):
-
+def process_features(train_path, valid_path, target_var, save_dv=True):
     train = pd.read_parquet(train_path)
     valid = pd.read_parquet(valid_path)
 
@@ -106,7 +123,7 @@ def process_features(
     X_train = dv.fit_transform(train_dict)
     X_valid = dv.transform(val_dict)
 
-    save_dv = True 
+    save_dv = True
 
     if save_dv:
         os.makedirs("model", exist_ok=True)
@@ -115,22 +132,14 @@ def process_features(
 
     return X_train, y_train, X_valid, y_valid
 
+
 @task
-def hpo(
-    X_train,
-    y_train,
-    X_valid, 
-    y_valid,
-    n_trials=3
-    ):
-    
+def hpo(X_train, y_train, X_valid, y_valid, n_trials=3):
     dtrain = xgb.DMatrix(X_train, label=y_train)
     dvalid = xgb.DMatrix(X_valid, label=y_valid)
-    
+
     def objective(trial):
-        
         with mlflow.start_run():
-            
             params = {
                 "objective": "binary:logistic",
                 "max_depth": trial.suggest_int("max_depth", 3, 10),
@@ -140,18 +149,18 @@ def hpo(
                 "lambda": trial.suggest_float("lambda", 0.0, 1.0),
                 "alpha": trial.suggest_float("alpha", 0.0, 1.0),
             }
-        
+
             mlflow.log_params(params)
 
             # Create xgboost Classifier with the hyperparameters
             model = xgb.train(
-                params, 
-                dtrain, 
+                params,
+                dtrain,
                 num_boost_round=500,
                 evals=[(dvalid, "validation")],
-                maximize=True, 
-                custom_metric=f1_eval, 
-                early_stopping_rounds=10, 
+                maximize=True,
+                custom_metric=f1_eval,
+                early_stopping_rounds=10,
                 verbose_eval=500,
             )
 
@@ -159,7 +168,7 @@ def hpo(
             y_pred_prob = model.predict(dvalid)
             y_pred = (y_pred_prob > 0.5).astype(int)
             auc, f1, precision, recall = model_eval(y_valid, y_pred, y_pred_prob)
-            
+
             metrics = {
                 "auc": auc,
                 "f1_score": f1,
@@ -170,14 +179,13 @@ def hpo(
             mlflow.log_metrics(metrics)
             mlflow.log_artifact("model/preprocessor.b", artifact_path="artifact")
             mlflow.xgboost.log_model(model, artifact_path="model", signature=signature)
-            
+
         return -f1
 
     # Create an Optuna study and optimize the objective function
     study = optuna.create_study(direction="maximize")
     study.optimize(objective, n_trials=n_trials)
 
-    return None
 
 @task
 def search_best_model(experiment_name):
@@ -185,10 +193,11 @@ def search_best_model(experiment_name):
     best_model_meta_data = client.search_runs(
         experiment_ids=experiment.experiment_id,
         run_view_type=ViewType.ACTIVE_ONLY,
-        order_by=["metrics.f1_score DESC"], 
-        max_results=1
+        order_by=["metrics.f1_score DESC"],
+        max_results=1,
     )[0]
     return best_model_meta_data
+
 
 @task
 def register_best_model(model_meta_data, model_name="diabetes-classifier"):
@@ -196,33 +205,27 @@ def register_best_model(model_meta_data, model_name="diabetes-classifier"):
     best_model_uri = f"runs:/{best_model_id}/model"
 
     reg_model_meta_data = mlflow.register_model(
-    model_uri=best_model_uri,
-    name=model_name
+        model_uri=best_model_uri, name=model_name
     )
 
     return reg_model_meta_data
 
-def get_latest_version_model(
-    model_name="diabetes-classifier",
-    stage="production"
-):
 
+def get_latest_version_model(model_name="diabetes-classifier", stage="production"):
     latest_version = client.get_latest_versions(name=model_name, stages=[stage])
 
     return latest_version
 
+
 @task(name="Model Comparision")
-def compare_models(
-    prod_model,
-    best_model_meta_data
-):
+def compare_models(prod_model, best_model_meta_data):
     prod_model_run_id = prod_model[0].run_id
     prod_model_metrics_data = client.get_metric_history(
-        prod_model_run_id, 
-        key="f1_score")   
+        prod_model_run_id, key="f1_score"
+    )
     prod_model_metrics = prod_model_metrics_data[0].value
-    
-    best_model_metrics = best_model_meta_data.data.metrics['f1_score']
+
+    best_model_metrics = best_model_meta_data.data.metrics["f1_score"]
 
     if best_model_metrics > prod_model_metrics:
         is_register = True
@@ -231,33 +234,29 @@ def compare_models(
 
     return is_register
 
+
 @task
 def transition_model_stage(
-    reg_model_meta_data, 
-    model_name="diabetes-classifier", 
-    stage="production"
-    ):
-
+    reg_model_meta_data, model_name="diabetes-classifier", stage="production"
+):
     client.transition_model_version_stage(
-    name=model_name,
-    version=reg_model_meta_data.version,
-    stage=stage,
-    archive_existing_versions=True,
+        name=model_name,
+        version=reg_model_meta_data.version,
+        stage=stage,
+        archive_existing_versions=True,
     )
 
     date = datetime.today().date()
     client.update_model_version(
-    name=model_name,
-    version=reg_model_meta_data.version,
-    description=f"The model version {reg_model_meta_data.version} was transition to {stage} on {date}"
+        name=model_name,
+        version=reg_model_meta_data.version,
+        description=f"The model version {reg_model_meta_data.version} "
+        "was transition to {stage} on {date}",
     )
-
-    return None
 
 
 @flow(name="training_pipeline")
 def train(config_path):
-
     logger = get_run_logger()
 
     logger.info("Loading configuration")
@@ -283,8 +282,10 @@ def train(config_path):
     data_split(df, train_path, valid_path, test_path)
 
     logger.info("Processing Features")
-    X_train, y_train, X_valid, y_valid = process_features(train_path, valid_path, target_var)
-    
+    X_train, y_train, X_valid, y_valid = process_features(
+        train_path, valid_path, target_var
+    )
+
     logger.info("Hyperparameter Tuning with XGBoost model")
     hpo(X_train, y_train, X_valid, y_valid, trials)
 
@@ -294,12 +295,11 @@ def train(config_path):
     register_models = client.search_registered_models()
 
     if len(register_models) == 0:
-        is_register = True 
+        is_register = True
     else:
         prod_model = get_latest_version_model()
         is_register = compare_models(
-           prod_model=prod_model,
-           best_model_meta_data=best_model_meta_data  
+            prod_model=prod_model, best_model_meta_data=best_model_meta_data
         )
 
     if is_register:
@@ -310,7 +310,5 @@ def train(config_path):
         transition_model_stage(reg_model_meta_data)
 
 
-
 if __name__ == "__main__":
-
     train(config_path="config.yaml")

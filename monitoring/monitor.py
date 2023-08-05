@@ -1,20 +1,18 @@
-from flask import Flask, request, jsonify, send_file
-import requests
 import logging
 
-from utils.save_db import save_predictions
-from utils.utils import (
-    get_current_data, 
-    get_reference_data,
-    get_serve_url
-)
+import requests
+from flask import Flask, jsonify, request, send_file
+from utils.utils import get_serve_url, get_current_data, get_reference_data
 from utils.report import (
-    get_column_mapping, 
-    build_data_drift_report, 
-    build_target_drift_report
+    get_column_mapping,
+    build_data_drift_report,
+    build_target_drift_report,
 )
+from utils.save_db import save_predictions
 
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s [%(levelname)s]: %(message)s")
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s [%(levelname)s]: %(message)s"
+)
 
 SERVE_ADDRESS = get_serve_url()
 
@@ -23,22 +21,33 @@ app = Flask("Monitoring Service")
 
 @app.route("/predict_monitor", methods=["POST"])
 def predict_monitor():
+    """
+    Monitoring service that uses prediction service from diabetes_service
+    and save the result into the database for monitoring
+    Returns:
+        json: A prediction result
+    """
     data = request.get_json()
-    result = requests.post(SERVE_ADDRESS, json=data).json()
+    result = requests.post(SERVE_ADDRESS, json=data, timeout=5).json()
 
     data["prediction"] = float(result["diabetes chance"])
     data["model_version"] = result["model_version"]
 
     save_predictions(data)
 
-    logging.debug(f"Save data is: \n {data}")
+    logging.debug("Save data is: \n %s", data)
 
     return jsonify(data)
 
+
 @app.route("/monitor_target_drift")
 def monitor_target_drift():
-
-    window_size = request.args.get('window_size', default=300, type=int)
+    """
+    Monitor target drift to the latest data inside the database
+    Returns:
+        Response: A target drift report
+    """
+    window_size = request.args.get("window_size", default=300, type=int)
     reference_df = get_reference_data()
 
     current_df = get_current_data(window_size=window_size)
@@ -46,16 +55,21 @@ def monitor_target_drift():
     column_mapping = get_column_mapping()
 
     report_path = build_target_drift_report(
-    current_data=current_df,
-    reference_data=reference_df,
-    column_mapping=column_mapping
+        current_data=current_df,
+        reference_data=reference_df,
+        column_mapping=column_mapping,
     )
     return send_file(report_path)
 
+
 @app.route("/monitor_data_drift")
 def monitor_data_drift():
-
-    window_size = request.args.get('window_size', default=300, type=int)
+    """
+    Monitor data drift to the latest data inside the database
+    Returns:
+        Response: A data drift report
+    """
+    window_size = request.args.get("window_size", default=300, type=int)
     reference_df = get_reference_data()
 
     current_df = get_current_data(window_size=window_size)
@@ -63,9 +77,9 @@ def monitor_data_drift():
     column_mapping = get_column_mapping()
 
     report_path = build_data_drift_report(
-    current_data=current_df,
-    reference_data=reference_df,
-    column_mapping=column_mapping
+        current_data=current_df,
+        reference_data=reference_df,
+        column_mapping=column_mapping,
     )
     return send_file(report_path)
 

@@ -1,7 +1,7 @@
-import requests
-import pandas as pd
 from time import sleep
 
+import pandas as pd
+import requests
 from utils.utils import get_test_path, get_monitor_serve_url
 
 if __name__ == "__main__":
@@ -20,6 +20,5 @@ if __name__ == "__main__":
         print("start sending the data...")
         for payload in test_data:
             print("sending the data...")
-            resp = requests.post(monitor_serve_url, json=payload).json()
+            resp = requests.post(monitor_serve_url, json=payload, timeout=5).json()
             sleep(1)
-    

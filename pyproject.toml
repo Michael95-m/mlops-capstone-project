@@ -1,0 +1,13 @@
+[tool.pylint.'MESSAGES CONTROL']
+disable=[
+    "missing-module-docstring",
+]
+
+[tool.black]
+profile = "black"
+line-length = 88
+target-version = ['py39']
+
+[tool.isort]
+multi_line_output = 3
+length_sort = true
