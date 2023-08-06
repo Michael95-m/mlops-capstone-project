@@ -7,7 +7,7 @@ from utils.ui import (
     display_header,
     display_report,
     display_sidebar_header,
-    set_page_container_style,
+    set_page_container_style
 )
 
 if __name__ == "__main__":

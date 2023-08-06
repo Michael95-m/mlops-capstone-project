@@ -6,7 +6,7 @@ from utils.utils import get_serve_url, get_current_data, get_reference_data
 from utils.report import (
     get_column_mapping,
     build_data_drift_report,
-    build_target_drift_report,
+    build_target_drift_report
 )
 from utils.save_db import save_predictions
 

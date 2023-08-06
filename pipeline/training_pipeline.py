@@ -1,9 +1,9 @@
+# pylint: disable=invalid-name
 import os
 import pickle
 from datetime import datetime
 
 import yaml
-import numpy as np
 import mlflow
 import optuna
 import pandas as pd
@@ -12,7 +12,12 @@ from prefect import flow, task, get_run_logger
 from prefect_aws import S3Bucket
 from mlflow.entities import ViewType
 from mlflow.tracking import MlflowClient
-from sklearn.metrics import f1_score, recall_score, roc_auc_score, precision_score
+from sklearn.metrics import (
+    f1_score,
+    recall_score,
+    roc_auc_score,
+    precision_score
+)
 from mlflow.models.signature import infer_signature
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
@@ -26,11 +31,14 @@ mlflow.set_experiment(experiment_name)
 
 def model_eval(y_true, y_pred, y_pred_prob):
     """
-    Calculates evaluation metrics like auc, f1-score, precision and recall
+     Calculates evaluation metrics like auc, f1-score, precision and recall
     Args:
-        y_true : actual target value
-        y_pred : predicted value
-        y_pred_prob : probability of predicted value
+        y_true (numpy.ndarray): actual target value
+        y_pred (numpy.ndarray): predicted value
+        y_pred_prob (numpy.ndarray): probability of predicted value
+
+    Returns:
+        tuple(float, float, float, float): area under the curve, f1-score, precision, recall
     """
     auc = roc_auc_score(y_true, y_pred_prob)
     f1 = f1_score(y_true, y_pred)
@@ -44,8 +52,11 @@ def f1_eval(y_pred, dtrain):
     """
     A function which will used inside optuna objective function
     Args:
-        y_pred : predicted value
-        dtrain : training data
+        y_pred (numpy.ndarray): actual target value
+        dtrain (): training data
+
+    Returns:
+        tuple: ("f1", f1_score)
     """
     y_true = dtrain.get_label()
     y_pred = (y_pred > 0.5).astype(int)
@@ -62,7 +73,7 @@ def load_config(config_path):
     Returns:
         dict: the configuration
     """
-    with open(config_path, "r") as yaml_file:
+    with open(config_path, "r", encoding='utf-8') as yaml_file:
         config = yaml.safe_load(yaml_file)
 
     return config
@@ -86,6 +97,14 @@ def download_s3_data(s3_bucket_block, s3_folder_path, dataset_folder_path):
 
 @task(retries=2, retry_delay_seconds=5)
 def load_data(file_path):
+    """
+    Load the data from csv file
+    Args:
+        file_path (str): csv file path
+
+    Returns:
+        pandas.DataFrame:
+    """
     df = pd.read_csv(file_path)
 
     return df
@@ -98,6 +117,14 @@ def data_split(
     valid_path,
     test_path,
 ):
+    """
+    Train test split and these data will be saved in data/processed
+    Args:
+        df (pandas.DataFrame): all data read from csv file
+        train_path (str): training csv file
+        valid_path (str): valid csv file
+        test_path (str): test csv file
+    """
     train, test_val = train_test_split(df, test_size=0.25, random_state=42)
     valid, test = train_test_split(test_val, test_size=0.5, random_state=42)
 
@@ -106,24 +133,48 @@ def data_split(
     valid.to_parquet(valid_path, index=False)
     test.to_parquet(test_path, index=False)
 
+def drop_features(train, valid, target_var):
+    """
+    Dropping features
+    Args:
+        train (pandas.DataFrame): training data
+        valid (pandas.DataFrame): validation data
+        target_var (str): target column
 
-@task
-def process_features(train_path, valid_path, target_var, save_dv=True):
-    train = pd.read_parquet(train_path)
-    valid = pd.read_parquet(valid_path)
-
+    Returns:
+        tuple: (input_train, output_train, input_valid, output_valid)
+    """    
     x_train = train.drop(target_var, axis=1)
     y_train = train[target_var]
     x_valid = valid.drop(target_var, axis=1)
     y_valid = valid[target_var]
+
+    return x_train, y_train, x_valid, y_valid
+
+@task
+def process_features(train_path, valid_path, target_var, save_dv=True):
+    """
+    Dropped and processed features by using DictVectorizer
+    Args:
+        train_path (str): training data
+        valid_path (str): validation data
+        target_var (str): testing data
+        save_dv (bool, optional): save DictVectorizer or not. Defaults to True.
+
+    Returns:
+        tuple: (input_train, output_train, input_valid, output_valid)
+    """
+
+    training = pd.read_parquet(train_path)
+    valid = pd.read_parquet(valid_path)
+
+    x_train, y_train, x_valid, y_valid = drop_features(training, valid, target_var)
 
     dv = DictVectorizer()
     train_dict = x_train.to_dict(orient="records")
     val_dict = x_valid.to_dict(orient="records")
     X_train = dv.fit_transform(train_dict)
     X_valid = dv.transform(val_dict)
-
-    save_dv = True
 
     if save_dv:
         os.makedirs("model", exist_ok=True)
@@ -135,6 +186,15 @@ def process_features(train_path, valid_path, target_var, save_dv=True):
 
 @task
 def hpo(X_train, y_train, X_valid, y_valid, n_trials=3):
+    """
+    Hyperparameter Optimization stage
+    Args:
+        X_train (pandas.DataFrame): input training data
+        y_train (pandas.DataFrame): output training data
+        X_valid (pandas.DataFrame): input validation data
+        y_valid (pandas.DataFrame): output validation data
+        n_trials (int, optional): number of trials. Defaults to 3.
+    """
     dtrain = xgb.DMatrix(X_train, label=y_train)
     dvalid = xgb.DMatrix(X_valid, label=y_valid)
 
@@ -189,6 +249,14 @@ def hpo(X_train, y_train, X_valid, y_valid, n_trials=3):
 
 @task
 def search_best_model(experiment_name):
+    """
+    Search the best model from all the trials in the experiment and its metadata
+    Args:
+        experiment_name (str): experiment name used in mlflow
+
+    Returns:
+        model_meta_data (): metadata about best model in the model registry
+    """
     experiment = client.get_experiment_by_name(experiment_name)
     best_model_meta_data = client.search_runs(
         experiment_ids=experiment.experiment_id,
@@ -201,6 +269,16 @@ def search_best_model(experiment_name):
 
 @task
 def register_best_model(model_meta_data, model_name="diabetes-classifier"):
+    """
+    Register the best model from the training trials in the model registry
+    Args:
+        model_meta_data (): metadata about best model in the model registry
+        model_name (str, optional): model name used in mlflow.
+                                    Defaults to "diabetes-classifier".
+
+    Returns:
+        (): metadata about registered model
+    """
     best_model_id = model_meta_data.info.run_id
     best_model_uri = f"runs:/{best_model_id}/model"
 
@@ -212,6 +290,16 @@ def register_best_model(model_meta_data, model_name="diabetes-classifier"):
 
 
 def get_latest_version_model(model_name="diabetes-classifier", stage="production"):
+    """
+    Get the latest version of the production model in the model registry
+    Args:
+        model_name (str, optional): model name used in mlflow.
+                                    Defaults to "diabetes-classifier".
+        stage (str, optional): stage inside mlflow model registry. Defaults to "production".
+
+    Returns:
+        str: the latest version in the mlflow model registry
+    """
     latest_version = client.get_latest_versions(name=model_name, stages=[stage])
 
     return latest_version
@@ -219,6 +307,13 @@ def get_latest_version_model(model_name="diabetes-classifier", stage="production
 
 @task(name="Model Comparision")
 def compare_models(prod_model, best_model_meta_data):
+    """
+    Comparison between the latest production model and the best model
+    from the running experiment
+
+    Returns:
+        bool: A boolean value to register the best model or not
+    """
     prod_model_run_id = prod_model[0].run_id
     prod_model_metrics_data = client.get_metric_history(
         prod_model_run_id, key="f1_score"
@@ -239,6 +334,14 @@ def compare_models(prod_model, best_model_meta_data):
 def transition_model_stage(
     reg_model_meta_data, model_name="diabetes-classifier", stage="production"
 ):
+    """
+    Transitioned the best model from the training trials to the production stage
+    Args:
+        reg_model_meta_data (): metadata about registered model
+        model_name (str, optional): model name used in mlflow.
+                                    Defaults to "diabetes-classifier".
+        stage (str, optional): stage inside mlflow model registry. Defaults to "production".
+    """
     client.transition_model_version_stage(
         name=model_name,
         version=reg_model_meta_data.version,
@@ -257,6 +360,11 @@ def transition_model_stage(
 
 @flow(name="training_pipeline")
 def train(config_path):
+    """
+    Main training pipeline
+    Args:
+        config_path (str): A configuration path used in training
+    """
     logger = get_run_logger()
 
     logger.info("Loading configuration")
