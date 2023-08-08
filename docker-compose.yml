@@ -1,0 +1,108 @@
+version: '3.7'
+services:
+  mlflow_server:
+    restart: always
+    build:
+      context: ./pipeline
+      dockerfile: Dockerfile.mlflow
+      args:
+        - "MLFLOW_TRACKING_DIRECTORY=${HOME}/mnt/mlruns"
+    image: mlflow_server
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
+    volumes:
+      - "${HOME}/mnt/mlruns:${HOME}/mnt/mlruns"
+    networks:
+      - backend
+
+  diabetes_service:
+    restart:  always
+    build: 
+      context: ./deployment
+      dockerfile: Dockerfile.diabetes_service
+    image: diabetes_service
+    container_name: diabetes_service
+    environment:
+      - MLFLOW_EXPERIMENT_URI=http://mlflow_server:5000
+    volumes:
+      - "${HOME}/mnt/serve:${HOME}/mnt/serve"
+      - "${HOME}/mnt/mlruns:${HOME}/mnt/mlruns"
+    ports:
+      - "5010:5010"
+    networks:
+      - backend
+
+  db:
+    image: postgres
+    container_name: monitoring_db
+    restart: always
+    environment:
+      POSTGRES_USER:  "admin"
+      POSTGRES_PASSWORD: "example"
+      POSTGRES_DB:  "production"
+    ports:
+      - "5432:5432"
+    volumes:
+      - monitoring_db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  adminer:
+    image: adminer
+    container_name: monitoring_adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+      - frontend  
+
+  monitoring_service:
+    restart: always
+    build: 
+      context: ./monitoring
+      dockerfile: Dockerfile.monitoring
+    image:  monitoring_service
+    container_name: monitoring_service
+    environment:
+      - DB_ADDRESS=monitoring_db
+      - SERVE_ADDRESS=http://diabetes_service:5010
+    depends_on:
+      - mlflow_server
+      - diabetes_service
+      - db
+    ports:
+      - "5020:5020"
+    networks:
+      - backend
+
+  streamlit_service:
+    restart:  always
+    build:
+      context: ./streamlit_app
+      dockerfile: Dockerfile.streamlit
+    image:  streamlit_service
+    container_name: streamlit_service
+    environment:
+      - MONITOR_SERVE_ADDRESS=http://monitoring_service:5020
+    depends_on:
+      - db
+      - monitoring_service
+    ports:
+      - "8501:8501"
+    networks:
+      - backend
+      - frontend
+
+volumes:
+  mlflow_data: {}
+  diabetes_service_data:  {}
+  monitoring_db_data: {}
+
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge

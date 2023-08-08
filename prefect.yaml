@@ -15,9 +15,10 @@ deployments:
   version: null
   tags: []
   description: null
-  entrypoint: pipeline/training_pipeline.py:train
+  entrypoint: pipeline/training_pipeline.py:train_pipeline
   parameters: {
-    "config_path": "config.yaml"
+    "config_path": "config.yaml",
+    "experiment_name": "training-pipeline"
   }
   work_pool:
     name: train-pool

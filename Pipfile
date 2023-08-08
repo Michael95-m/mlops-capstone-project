@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-mlflow = "==2.5.0"
 xgboost = "*"
 optuna = "*"
 prefect-aws = "*"
@@ -18,6 +17,7 @@ streamlit = "*"
 psycopg2 = "*"
 sqlalchemy = "*"
 prefect-email = "*"
+mlflow = "*"
 
 [dev-packages]
 pytest = "*"

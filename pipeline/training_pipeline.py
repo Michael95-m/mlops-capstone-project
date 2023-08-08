@@ -17,6 +17,11 @@ from mlflow.models.signature import infer_signature
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
 
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_EXPERIMENT_URI", "http://127.0.0.1:5000")
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
+experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
+mlflow.set_experiment(experiment_name)
 
 def model_eval(y_true, y_pred, y_pred_prob):
     """
@@ -412,10 +417,6 @@ def train_pipeline(experiment_name, config_path):
 
 
 if __name__ == "__main__":
-    MLFLOW_TRACKING_URI = os.getenv("MLFLOW_EXPERIMENT_URI", "http://127.0.0.1:5000")
-    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
-    experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
-    mlflow.set_experiment(experiment_name)
+    
 
     train_pipeline(experiment_name, config_path="config.yaml")
