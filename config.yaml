@@ -19,5 +19,5 @@ train_path: ./data/processed/train.parquet
 valid_path: ./data/processed/valid.parquet
 test_path: ./data/processed/test.parquet
 
-trials: 7
+trials: 4
 

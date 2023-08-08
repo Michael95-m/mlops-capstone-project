@@ -1,48 +1,87 @@
-from unittest.mock import MagicMock
-
-import pytest
+# pylint: disable=too-few-public-methods, invalid-name
+import json
+from pathlib import Path
 
 from deployment.model_service import ModelService
 
-# Sample input data for testing
-sample_data = [{"feature1": 1.5, "feature2": 2.0}, {"feature1": 3.0, "feature2": 4.5}]
 
-
-# Mocking the model and dv objects
-@pytest.fixture
-def model_service():
+class ModelMock:
     """
-    Return the ModelService object which use the mock_model and mock_dv
+    Just mocking the function of the xgboost model
     """
-    # Mock the model and dv objects
-    mock_model = MagicMock()
-    mock_dv = MagicMock()
 
-    # Return ModelService with mocked model and dv
-    return ModelService(mock_model, mock_dv)
+    def __init__(self, value):
+        self.value = value
+
+    def predict(self, X):
+        """
+        Mock predict function
+        Args:
+            X (dict): A sample data in dictionary format
+
+        Returns:
+            list: A list of the values of X with the size of the dictionary
+        """
+        n = len(X)
+        return [self.value] * n
 
 
-def test_predict(model_service):
+class DvMock:
     """
-    Test the predict function from ModelService object
+    Just mocking the dictvectorizer from scikit-learn
     """
-    # Sample expected output from the model
-    expected_output = [0, 1]
 
-    # Mock the transform method of dv
-    model_service.dv.transform.return_value = [[1.5, 2.0], [3.0, 4.5]]
+    def transform(self, value):
+        """
+        Mock transform function
+        Args:
+            value (dict): A sample data in dictionary format
 
-    # Mock the predict method of the model
-    model_service.model.predict.return_value = expected_output
+        Returns:
+            dict: A sample data in dictionary format
+        """
+        return value
 
-    # Call the predict method of ModelService with sample data
-    result = model_service.predict(sample_data)
 
-    # Assert the result is as expected
-    assert result == expected_output
+def read_data(file):
+    """
+    Reading sample data from json file
+    Args:
+        file (str): sample_data.json.
 
-    # Assert the dv.transform method is called with the sample data
-    model_service.dv.transform.assert_called_once_with(sample_data)
+    Returns:
+        dict: A sample data in dictionary form
+    """
 
-    # Assert the model.predict method is called with the transformed data
-    model_service.model.predict.assert_called_once_with([[1.5, 2.0], [3.0, 4.5]])
+    test_directory = Path(__file__).parent
+
+    with open(test_directory / file, "r", encoding="utf-8") as f:
+        sample_data = json.load(f)
+
+    return sample_data[0]
+
+
+def get_model_service():
+    """
+    Preparation of model service object
+    Returns:
+        ModelService: A object from the ModelService
+    """
+
+    model_mock = ModelMock(10.0)
+    dv_mock = DvMock()
+
+    return ModelService(model_mock, dv_mock)
+
+
+def test_predict():
+    """
+    test case for prediction function of ModelService class
+    """
+    model_service = get_model_service()
+    sample_data = read_data("sample_data.json")
+
+    y_pred = model_service.predict(sample_data)[0]
+    expected_y_pred = 10
+
+    assert y_pred == expected_y_pred

@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, redefined-outer-name, ungrouped-imports
 import os
 import pickle
 from datetime import datetime
@@ -12,21 +12,10 @@ from prefect import flow, task, get_run_logger
 from prefect_aws import S3Bucket
 from mlflow.entities import ViewType
 from mlflow.tracking import MlflowClient
-from sklearn.metrics import (
-    f1_score,
-    recall_score,
-    roc_auc_score,
-    precision_score
-)
+from sklearn.metrics import f1_score, recall_score, roc_auc_score, precision_score
 from mlflow.models.signature import infer_signature
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
-
-experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_EXPERIMENT_URI", "http://127.0.0.1:5000")
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
-mlflow.set_experiment(experiment_name)
 
 
 def model_eval(y_true, y_pred, y_pred_prob):
@@ -73,7 +62,7 @@ def load_config(config_path):
     Returns:
         dict: the configuration
     """
-    with open(config_path, "r", encoding='utf-8') as yaml_file:
+    with open(config_path, "r", encoding="utf-8") as yaml_file:
         config = yaml.safe_load(yaml_file)
 
     return config
@@ -133,6 +122,7 @@ def data_split(
     valid.to_parquet(valid_path, index=False)
     test.to_parquet(test_path, index=False)
 
+
 def drop_features(train, valid, target_var):
     """
     Dropping features
@@ -143,7 +133,7 @@ def drop_features(train, valid, target_var):
 
     Returns:
         tuple: (input_train, output_train, input_valid, output_valid)
-    """    
+    """
     x_train = train.drop(target_var, axis=1)
     y_train = train[target_var]
     x_valid = valid.drop(target_var, axis=1)
@@ -151,8 +141,10 @@ def drop_features(train, valid, target_var):
 
     return x_train, y_train, x_valid, y_valid
 
+
 @task
 def process_features(train_path, valid_path, target_var, save_dv=True):
+    # pylint: disable=too-many-locals
     """
     Dropped and processed features by using DictVectorizer
     Args:
@@ -251,11 +243,12 @@ def hpo(X_train, y_train, X_valid, y_valid, n_trials=3):
 def search_best_model(experiment_name):
     """
     Search the best model from all the trials in the experiment and its metadata
+
     Args:
-        experiment_name (str): experiment name used in mlflow
+        experiement_name (str): An experiment name used in the mlflow
 
     Returns:
-        model_meta_data (): metadata about best model in the model registry
+        model_meta_data : metadata about best model in the model registry
     """
     experiment = client.get_experiment_by_name(experiment_name)
     best_model_meta_data = client.search_runs(
@@ -277,7 +270,7 @@ def register_best_model(model_meta_data, model_name="diabetes-classifier"):
                                     Defaults to "diabetes-classifier".
 
     Returns:
-        (): metadata about registered model
+        metadata about registered model
     """
     best_model_id = model_meta_data.info.run_id
     best_model_uri = f"runs:/{best_model_id}/model"
@@ -322,10 +315,8 @@ def compare_models(prod_model, best_model_meta_data):
 
     best_model_metrics = best_model_meta_data.data.metrics["f1_score"]
 
-    if best_model_metrics > prod_model_metrics:
-        is_register = True
-    else:
-        is_register = False
+    # True if current best model metrics is better than production metrics
+    is_register = best_model_metrics > prod_model_metrics
 
     return is_register
 
@@ -354,15 +345,17 @@ def transition_model_stage(
         name=model_name,
         version=reg_model_meta_data.version,
         description=f"The model version {reg_model_meta_data.version} "
-        "was transition to {stage} on {date}",
+        f"was transition to {stage} on {date}",
     )
 
 
 @flow(name="training_pipeline")
-def train(config_path):
+def train_pipeline(experiment_name, config_path):
+    # pylint: disable=too-many-locals
     """
     Main training pipeline
     Args:
+        experiement_name (str): An experiment name used in the mlflow
         config_path (str): A configuration path used in training
     """
     logger = get_run_logger()
@@ -419,4 +412,10 @@ def train(config_path):
 
 
 if __name__ == "__main__":
-    train(config_path="config.yaml")
+    MLFLOW_TRACKING_URI = os.getenv("MLFLOW_EXPERIMENT_URI", "http://127.0.0.1:5000")
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
+    experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
+    mlflow.set_experiment(experiment_name)
+
+    train_pipeline(experiment_name, config_path="config.yaml")

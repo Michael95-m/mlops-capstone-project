@@ -4,10 +4,10 @@ disable=[
 ]
 
 [tool.black]
-profile = "black"
 line-length = 88
 target-version = ['py39']
 
 [tool.isort]
+profile = "black"
 multi_line_output = 3
 length_sort = true

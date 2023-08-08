@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name, duplicate-code
 import logging
 
 from sqlalchemy import create_engine
@@ -10,8 +11,16 @@ logging.basicConfig(
     level=logging.DEBUG,
 )
 
-if __name__ == "__main__":
+
+def main():
+    """
+    Create database if database does't exist
+    """
     DATABASE_URL = get_db_url()
     engine = create_engine(DATABASE_URL)
     Base.metadata.create_all(engine)
     logging.info("Database has been created successfully")
+
+
+if __name__ == "__main__":
+    main()
