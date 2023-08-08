@@ -1,22 +1,22 @@
 #!/bin/bash
 
 echo "Mlflow server and prediction service starting"
-docker compose -f docker-compose.serve.yaml -f docker-compose.registry.yaml up -d
+docker compose up -d mlflow_server diabetes_service
 
 sleep 5
 
-echo "Running integration test"
+echo "Running integration test to the diabetes service API"
 pipenv run python integration_test/test_service.py
 
 ERROR_CODE=$?
 
 if [ ${ERROR_CODE} != 0 ]; then
-    docker compose -f docker-compose.serve.yaml -f docker-compose.registry.yaml logs
-    docker compose -f docker-compose.serve.yaml -f docker-compose.registry.yaml down
+    docker compose logs mlflow_server diabetes_service
+    docker compose down mlflow_server diabetes_service
     exit ${ERROR_CODE}
 fi
 
-docker compose -f docker-compose.serve.yaml -f docker-compose.registry.yaml down
+docker compose down mlflow_server diabetes_service
 
 echo "Yayy!! Integration test passed"
 
