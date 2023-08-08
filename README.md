@@ -15,7 +15,7 @@ pipenv install
 
 ### 2. Setup model's registry requirments.
 
-Run `make setup-model-registry`. Do it only for the first time running and yon don't need to do it for next time.
+Run `make setup-model-registry`. Do it only for the first time running and yon don't need to do it for next time. It just create the folder named **mnt** inside the home directory to save the metrics and artifacts from mlflow_server service.
 
 ### 3. Start prefect server.
 
@@ -54,13 +54,41 @@ All other services inside docker compose file will be needed to be up and you ca
 
 ### 2. Create the database named **production** in the postgresql service. 
 
-You need to create the database named **production** to save the prediction result for monitoring purpose. This prediction log will become the current data for checking the data drift. You can create it by using `make create-db`.
+You need to create the database named **production** to save the prediction result for monitoring purpose. This prediction log will become the **current data** for checking the data drift. You can create it by using `make create-db`.
 
 ### 3. Send the simulation data to the monitoring api.
 
 You have to send the **simulation data** to the monitoring api for the purpose of model monitoring. You can send it by using `make send-data-to-monitoring-api` in another terminal.
 
 While sending the data, you can check the data inside the table named **prediction_log** inside the database.
+
+### 4. Check the data drift and target drift.
+
+You can check the data drift and target drift when there is a certain amount of data inside the table. You can check the data inside with [**adminer** tool](http://localhost:8080). You can login the adminer by using *db* for server, *admin* for username, *example* for password and *production* for database.
+
+Then go to the [streamlit service](http://localhost:8501) and you will see the streamlit UI. Then click the **Data Drift** button to check the report about **data drift**. Then click the **Target Drift** button to check the report about **target drift**.
+
+### 5. Deploy the monitoring pipeline in prefect
+
+We can deploy the monitoring pipeline that can send an email as an alert if the drift is detected on current data. You can implement it by deploying the workflow in the prefect.
+
+**The note will be continued.**
+
+
+## Testing
+
+1. Check the unit test.
+
+You can run unit test by `make run-unit-test`.
+
+2. Check the integration test.
+
+You can run integration test by `make run-integration-test`. In order to run integration test, you need to down all docker services. You can do this by `make stop-all-services`.
+
+3. Check the quality of the code by linting tools.
+
+You can run by `make quality-check`.
+
 
 
 

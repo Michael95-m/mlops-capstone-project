@@ -51,7 +51,7 @@ reset-db:
 send-data-monitoring-api:
 	pipenv shell python monitoring/send_data_api.py
 
-stop-services:
+stop-all-services:
 	docker compose down 
 
 run-unit-test:
