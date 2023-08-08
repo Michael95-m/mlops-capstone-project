@@ -38,11 +38,31 @@ After starting the worker, you can run the deployed training pipeline by using `
 
 ## Model Serving
 
-The trained model will be deployed as HTTP service by using *flask* and *gunicorn*. **Note:** In order to deploy the model as a service, you need to run the training pipeline at least once to have the production model in the mlflow model registry. And you also need to up the mlflow_server service to access this model.
+The trained model will be deployed as HTTP service by using *flask* and *gunicorn*. (**Note:** In order to deploy the model as a service, you need to run the training pipeline at least once to have the production model in the mlflow model registry. And you also need to up the mlflow_server service to access this model.)
+
+### 1. Start the diabetes service 
 
 You can start the diabetes-service by running `make start-diabetes-service`.
 
 ## Model Monitoring
+
+For model monitoring, the diabetes-service from **model serving** part and the mlflow_server service will be needed to be up.
+
+### 1. Start all other services inside docker-compose.yml.
+
+All other services inside docker compose file will be needed to be up and you can do it by using `make start-all-services`.
+
+### 2. Create the database named **production** in the postgresql service. 
+
+You need to create the database named **production** to save the prediction result for monitoring purpose. This prediction log will become the current data for checking the data drift. You can create it by using `make create-db`.
+
+### 3. Send the simulation data to the monitoring api.
+
+You have to send the **simulation data** to the monitoring api for the purpose of model monitoring. You can send it by using `make send-data-to-monitoring-api` in another terminal.
+
+While sending the data, you can check the data inside the table named **prediction_log** inside the database.
+
+
 
 
 
