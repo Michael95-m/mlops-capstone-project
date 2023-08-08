@@ -42,7 +42,13 @@ start-diabetes-service:
 start-all-services:
 	docker compose up -d
 
-start-send-data-monitoring-api:
+create-db:
+	pipenv run python monitoring/create_db.py
+
+reset-db:
+	pipenv run python monitoring/drop_db.py
+
+send-data-monitoring-api:
 	pipenv shell python monitoring/send_data_api.py
 
 stop-services:
@@ -57,7 +63,7 @@ run-integration-test:
 quality-check:
 	pipenv run isort .
 	pipenv run black .
-	pipenv run pytest --recursive=y .
+	pipenv run pylint --recursive=y .
 
 
 

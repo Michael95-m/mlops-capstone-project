@@ -23,6 +23,7 @@ client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
 experiment_name = os.getenv("EXPERIMENT_NAME", "training-pipeline")
 mlflow.set_experiment(experiment_name)
 
+
 def model_eval(y_true, y_pred, y_pred_prob):
     """
      Calculates evaluation metrics like auc, f1-score, precision and recall
@@ -417,6 +418,4 @@ def train_pipeline(experiment_name, config_path):
 
 
 if __name__ == "__main__":
-    
-
     train_pipeline(experiment_name, config_path="config.yaml")
