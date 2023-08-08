@@ -36,8 +36,6 @@ start-worker:
 run-deployed-training-pipeline:
 	pipenv run prefect deployment run 'training_pipeline/deploy_train'
 
-
-
 start-diabetes-service:
 	docker compose up -d diabetes_service
 
