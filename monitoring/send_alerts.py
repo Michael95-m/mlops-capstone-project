@@ -32,6 +32,10 @@ def get_yesterday_info():
 def get_day_info(day, month, year):
     """
     get the start and end timestamp of the provided day
+    Args:
+        day (int): day of the month
+        month (int): month of the year
+        year (int): year
     Returns:
         tuple: start_of_the_day and end_of_the_day of the provided day
     """
@@ -159,7 +163,7 @@ def send_alert(day, month, year):
 
     logger.info("Checking the data for the provided day")
     logger.info("There are %d num of rows for the provided day", len(current_data))
-    if not len(current_data):
+    if len(current_data) == 0:
         logger.info("Since there is no data for the provided day")
         logger.info("Exiting...")
         return
@@ -194,8 +198,10 @@ def send_alert(day, month, year):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Monitoring pipeline")
-    day = parser.add_argument("--day", "-d", default=None, type=int, help="Day")
-    month = parser.add_argument("--month", "-m", default=None, type=int, help="Month")
-    year = parser.add_argument("--year", "-y", default=None, type=int, help="Year")
+    args_day = parser.add_argument("--day", "-d", default=None, type=int, help="Day")
+    args_month = parser.add_argument(
+        "--month", "-m", default=None, type=int, help="Month"
+    )
+    args_year = parser.add_argument("--year", "-y", default=None, type=int, help="Year")
     args = parser.parse_args()
-    send_alert(args.day, args.month, args.year)
+    send_alert(day=args.args_day, month=args.args_month, year=args.args_year)

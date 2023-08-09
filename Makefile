@@ -85,17 +85,4 @@ quality-check:
 	pipenv run isort .
 	pipenv run black .
 	pipenv run pylint --recursive=y .
-
-
-
-
-
-
-
-	
-
-
-
-
-
 	

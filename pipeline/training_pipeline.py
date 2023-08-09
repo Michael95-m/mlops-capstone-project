@@ -62,6 +62,11 @@ def f1_eval(y_pred, dtrain):
 
 
 def get_save_path():
+    """
+    Get the path for saving the raw data
+    Returns:
+        str: csv path
+    """
     parent = Path(__file__).resolve().parent.parent
     file_path = "data/raw/diabetes_prediction_dataset.csv"
     data_path = parent / file_path
@@ -70,12 +75,27 @@ def get_save_path():
 
 @task(retries=3)
 def download_data_from_s3(s3, raw_data_path, BUCKET_NAME, OBJECT_NAME):
+    """
+    Download the raw data from s3
+    Args:
+        s3 (): s3 obj from boto3
+        raw_data_path (str): the file path in local to save raw data
+        BUCKET_NAME (str): name of the bucket from s3
+        OBJECT_NAME (str): name of the object from s3
+    """
     with open(raw_data_path, "wb") as f:
         s3.download_fileobj(BUCKET_NAME, OBJECT_NAME, f)
 
 
 @task(retries=3)
 def save_data_to_s3(s3, data_path, BUCKET_NAME):
+    """
+    Save data to s3 bucket
+    Args:
+        s3 (): s3 obj from boto3
+        data_path (str): the file path to upload (eg. train.parquet etc.)
+        BUCKET_NAME (str): name of the bucket from s3
+    """
     data_path = Path(data_path)
     OBJECT_NAME = data_path.name
 
