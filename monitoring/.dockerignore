@@ -3,6 +3,7 @@ reports/*.html
 data/*.parquet
 !data/valid.parquet
 !data/test.parquet
+!data/reference.parquet
 test.py 
 send_data_api.py
 Dockerfile.monitoring

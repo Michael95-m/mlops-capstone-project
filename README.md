@@ -27,7 +27,7 @@ Run the training pipeline which train **XGBoost** model and registry the best mo
 
 ### 4.1. Run the training pipeline with the data from s3.
 
-In real world, the raw data should not be saved in github. We have to upload the data in s3 bucket or somewhere and when it's time to train the data, we will download the data from there to local computer. For this step to implement, you need to configure `aws cli` and create the s3 bucket and upload the data to s3. If you save the data in s3 bucket, you don't need to have the data in the local. You need to set `BUCKET_NAME`, `OBJECT_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_DEFAULT_REGION` in **.env** file in the root directory. Otherwise, you will need to use `export AWS_DEFAULT_REGION=ap-southeast-1` to set the environment variable.
+You need to configure `aws cli` and create the s3 bucket and upload the data to s3. If you save the data in s3 bucket, you don't need to have the data in the local. You need to set **BUCKET_NAME**, **OBJECT_NAME** etc. in **.env** file in the root directory. Otherwise, you will need to use **export** command to set the environment variable.
 
 To run the training pipeline with the data downloaded from s3 (additionally, it will also upload the training, validation and test data to the s3 bucket), you can use
 
@@ -60,46 +60,71 @@ You can start the diabetes-service by running `make start-diabetes-service`.
 
 ## Model Monitoring
 
-For model monitoring, the diabetes-service from **model serving** part and the mlflow_server service will be needed to be up.
+For model monitoring, the **diabetes-service** from **model serving** part and the **mlflow_server** service will be needed to be up.
 
-### 1. Start all other services inside docker-compose.yml.
+### 1. Preparing reference data
+
+You need to copy validation data named **valid.parquet** from the data folder to the **data** folder inside **monitoring**.
+
+Then start diabetes-service by `make start-diabetes-service`. After that,  run `make prepare-reference` to prepare reference data.
+
+### 2. Start all other services inside docker-compose.yml.
 
 All other services inside docker compose file will be needed to be up and you can do it by using `make start-all-services`.
 
-### 2. Create the database named **production** in the postgresql service. 
+### 3. Create the database named **production** in the postgresql service. 
 
-You need to create the database named **production** to save the prediction result for monitoring purpose. This prediction log will become the **current data** for checking the data drift. You can create it by using `make create-db`.
+You need to create the database named **production** to save the prediction result for monitoring purpose. 
+This prediction log will become the **current data** for checking the data drift. You can create it by using `make create-db`.
 
-### 3. Send the simulation data to the monitoring api.
+### 4. Send the simulation data to the monitoring api.
 
 You have to send the **simulation data** to the monitoring api for the purpose of model monitoring. You can send it by using `make send-data-to-monitoring-api` in another terminal.
 
 While sending the data, you can check the data inside the table named **prediction_log** inside the database.
 
-### 4. Check the data drift and target drift.
+### 5. Check the data drift and target drift.
 
-You can check the data drift and target drift when there is a certain amount of data inside the table. You can check the data inside with [**adminer** tool](http://localhost:8080). You can login the adminer by using *db* for server, *admin* for username, *example* for password and *production* for database.
+You can check the data drift and target drift when there is a certain amount of data inside the table. You can check the data inside with [**adminer** tool](http://localhost:8080). 
+
+You can login the adminer by using 
+
+- **db** for server
+- **admin** for username
+- **example** for password 
+- **production** for database.
 
 Then go to the [streamlit service](http://localhost:8501) and you will see the streamlit UI. Then click the **Data Drift** button to check the report about **data drift**. Then click the **Target Drift** button to check the report about **target drift**.
 
-### 5. Deploy the monitoring pipeline in prefect
+### 6. Deploy the monitoring pipeline in prefect
 
 We can deploy the monitoring pipeline that can send an email as an alert if the drift is detected on current data. You can implement it by deploying the workflow in the prefect.
 
-**The note will be continued.**
+#### 6.1. Create an email block for prefect.
+
+Create an email block by using `make create-email-block`. Before creating email block, you need to set environment variable named
+
+- EMAIL_USERNAME
+- EMAIL_PASSWORD
+
+The easiest way to set is using **.env** file. You can set the value inside of that file. **EMAIL_PASSWORD** is not your password; it's called the appword. You can check how to generate it at [here](https://support.google.com/mail/answer/185833?hl=en)
+
+### 6.2. Running the monitoring pipeline.
+
+
 
 
 ## Testing
 
-1. Check the unit test.
+### 1. Check the unit test.
 
 You can run unit test by `make run-unit-test`.
 
-2. Check the integration test.
+### 2. Check the integration test.
 
 You can run integration test by `make run-integration-test`. In order to run integration test, you need to down all docker services. You can do this by `make stop-all-services`.
 
-3. Check the quality of the code by linting tools.
+### 3. Check the quality of the code by linting tools.
 
 You can run by `make quality-check`.
 

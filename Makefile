@@ -23,6 +23,9 @@ prefect-server-start:
 run-training-pipeline:
 	pipenv run python pipeline/training_pipeline.py
 
+run-training-pipeline-s3:
+	pipenv run python pipeline/training_pipeline.py --use_s3
+
 create-workpool:
 	pipenv run prefect work-pool create --type process train-pool
 
@@ -36,11 +39,17 @@ start-worker:
 run-deployed-training-pipeline:
 	pipenv run prefect deployment run 'training_pipeline/deploy_train'
 
+run-deployed-training-pipeline-s3:
+	pipenv run prefect deployment run -p use_s3=True 'training_pipeline/deploy_train'
+
 start-diabetes-service:
 	docker compose up -d diabetes_service
 
 start-all-services:
 	docker compose up -d
+
+prepare-reference:
+	pipenv run python monitoring/prepare_reference_data.py
 
 create-db:
 	pipenv run python monitoring/create_db.py
@@ -50,6 +59,9 @@ reset-db:
 
 send-data-monitoring-api:
 	pipenv shell python monitoring/send_data_api.py
+
+create-email-block:
+	pipenv run python monitoring/create_email_block.py
 
 stop-all-services:
 	docker compose down 
