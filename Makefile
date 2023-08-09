@@ -63,6 +63,15 @@ send-data-monitoring-api:
 create-email-block:
 	pipenv run python monitoring/create_email_block.py
 
+run-monitoring-pipeline:
+	pipenv run python monitoring/send_alerts.py
+
+deploy-monitoring-pipeline: 
+	pipenv run prefect deploy -n deploy_monitor
+
+run-deployed-monitoring-pipeline:
+	pipenv run prefect deployment run send-alert/deploy_monitor
+
 stop-all-services:
 	docker compose down 
 
