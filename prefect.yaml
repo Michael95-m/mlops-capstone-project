@@ -18,12 +18,12 @@ deployments:
   entrypoint: pipeline/training_pipeline.py:train_pipeline
   parameters: {
     "config_path": "config.yaml",
-    "experiment_name": "training-pipeline"
+    "experiment_name": "training-pipeline",
+    "use_s3": ""
   }
   work_pool:
     name: train-pool
-  schedule:
-    cron: 0 0 * * *
+
 - name: deploy_monitor
   version: null
   tags: []
