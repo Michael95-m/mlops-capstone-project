@@ -71,32 +71,33 @@ For model monitoring, the **diabetes-service** from **model serving** part and t
 
 ### 2. Start all other services inside docker-compose.yml.
 
-All other services inside docker compose file will be needed to be up and you can do it by using `make start-all-services`.
+- All other services inside docker compose file will be needed to be up and you can do it by using `make start-all-services`.
 
 ### 3. Create the database named **production** in the postgresql service. 
 
-You need to create the database named **production** to save the prediction result for monitoring purpose. 
+- You need to create the database named **production** to save the prediction result for monitoring purpose. 
 
-This prediction log will become the **current data** for checking the data drift. You can create it by using `make create-db`.
+- This prediction log will become the **current data** for checking the data drift. You can create it by using `make create-db`.
 
 ### 4. Send the simulation data to the monitoring api.
 
-You have to send the **simulation data** to the monitoring api for the purpose of model monitoring. You can send it by using `make send-data-to-monitoring-api` in another terminal.
+- You have to send the **simulation data** to the monitoring api for the purpose of model monitoring. You can send it by using `make send-data-to-monitoring-api` in another terminal.
 
-While sending the data, you can check the data inside the table named **prediction_log** inside the database.
+- While sending the data, you can check the data inside the table named **prediction_log** inside the database.
 
 ### 5. Check the data drift and target drift.
 
-You can check the data drift and target drift when there is a certain amount of data inside the table. You can check the data inside with [**adminer** tool](http://localhost:8080). 
+- You can check the data drift and target drift when there is a certain amount of data inside the table. You can check the data inside with [**adminer** tool](http://localhost:8080). 
 
 You can login the adminer by using 
 
-- **db** for server
-- **admin** for username
-- **example** for password 
-- **production** for database.
+    - **db** for server
+    - **admin** for username
+    - **example** for password 
+    - **production** for database.
 
-Then go to the [streamlit service](http://localhost:8501) and you will see the streamlit UI. Then click the **Data Drift** button to check the report about **data drift**. Then click the **Target Drift** button to check the report about **target drift**.
+- Then go to the [streamlit service](http://localhost:8501) and you will see the streamlit UI. Then click the **Data Drift** button to check the report about **data drift**. 
+- Then click the **Target Drift** button to check the report about **target drift**.
 
 ### 6. Deploy the monitoring pipeline in prefect
 
@@ -104,39 +105,42 @@ We can deploy the monitoring pipeline that can send an email as an alert if the 
 
 ### 6.1. Create an email block for prefect.
 
-Create an email block by using `make create-email-block`. Before creating email block, you need to set environment variable named
+- Create an email block by using `make create-email-block`. Before creating email block, you need to set environment variable named
 
-- EMAIL_USERNAME
-- EMAIL_PASSWORD
+    - EMAIL_USERNAME
+    - EMAIL_PASSWORD
 
-The easiest way to set is using **.env** file. You can set the value inside of that file. **EMAIL_PASSWORD** is not your password; it's called the appword. You can check how to generate it at [here](https://support.google.com/mail/answer/185833?hl=en)
+- The easiest way to set is using **.env** file. You can set the value inside of that file. **EMAIL_PASSWORD** is not your password; it's called the appword. You can check how to generate it at [here](https://support.google.com/mail/answer/185833?hl=en)
 
 ### 6.2. Running the monitoring pipeline.
 
-If you want to check the data drift for yesterday's data, just run `make run-monitoring-pipeline`.
+- If you want to check the data drift for yesterday's data, just run `make run-monitoring-pipeline`.
 
-If you want to check for specific day's data, run `pipenv run python monitoring/send_alerts.py -d <day> -m <month> -y <year>`. You can replace <day>, <month> and <year> as the date you want to check.
+- If you want to check for specific day's data, run `pipenv run python monitoring/send_alerts.py -d <day> -m <month> -y <year>`. You can replace <day>, <month> and <year> as the date you want to check.
 
 Eg. This command, `pipenv run python monitoring/send_alerts.py -d 9 -m 8 -y 2023` will run the data drift check for **9 August 2023**. 
 
 ### 6.3. Running the deployed monitoring pipeline
 
-First, you need to deploy monitoring pipeline with `make deploy-monitoring-pipeline`.
+- First, you need to deploy monitoring pipeline with `make deploy-monitoring-pipeline`. 
 
-In order to run monitoring pipeline, you need to start workpool by `make start-worker`. You can run the deployed workflow by `make run-deployed-monitoring-pipeline`. And it will check the data drift for yesterday.
+- In order to run monitoring pipeline, you need to start workpool by `make start-worker`.
 
-For specific day, run `pipenv run prefect deployment run -p day=<day> -p month=<month> -p year=<year> send-alert/deploy_monitor`. You can replace it as you like.
+- You can run the deployed workflow by `make run-deployed-monitoring-pipeline`. And it will check the data drift for yesterday.
+
+- For specific day, run `pipenv run prefect deployment run -p day=<day> -p month=<month> -p year=<year> send-alert/deploy_monitor`. You can replace it as you like.
 
 ## Testing
 
 ### 1. Check the unit test.
 
-You can run unit test by `make run-unit-test`.
+- You can run unit test by `make run-unit-test`.
 
 ### 2. Check the integration test.
 
-You can run integration test by `make run-integration-test`. In order to run integration test, you need to down all docker services. You can do this by `make stop-all-services`.
+- You can run integration test by `make run-integration-test`. 
+- In order to run integration test, you need to down all docker services. You can do this by `make stop-all-services`.
 
 ### 3. Check the quality of the code by linting tools.
 
-You can run by `make quality-check`.
+- You can run by `make quality-check`.
