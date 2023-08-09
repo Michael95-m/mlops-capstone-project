@@ -1,6 +1,8 @@
 # pylint: disable=invalid-name, redefined-outer-name, ungrouped-imports
 import os
+import boto3
 import pickle
+from pathlib import Path
 from datetime import datetime
 
 import yaml
@@ -16,6 +18,7 @@ from sklearn.metrics import f1_score, recall_score, roc_auc_score, precision_sco
 from mlflow.models.signature import infer_signature
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
+import argparse
 
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_EXPERIMENT_URI", "http://127.0.0.1:5000")
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
@@ -57,6 +60,26 @@ def f1_eval(y_pred, dtrain):
     y_pred = (y_pred > 0.5).astype(int)
     return "f1", f1_score(y_true, y_pred)
 
+
+def get_save_path():
+    parent = Path(__file__).resolve().parent.parent
+    file_path = "data/raw/diabetes_prediction_dataset.csv"
+    data_path = parent / file_path
+    return data_path
+
+@task(retries=3)
+def download_data_from_s3(s3, raw_data_path, BUCKET_NAME, OBJECT_NAME):
+    with open(raw_data_path , "wb") as f:
+        s3.download_fileobj(BUCKET_NAME, OBJECT_NAME, f)
+
+@task(retries=3)
+def save_data_to_s3(s3, data_path, BUCKET_NAME):
+
+    data_path = Path(data_path)
+    OBJECT_NAME = data_path.name
+
+    with open(data_path, "rb") as f:
+        s3.upload_fileobj(f, BUCKET_NAME, OBJECT_NAME)
 
 @task(retries=2, retry_delay_seconds=5)
 def load_config(config_path):
@@ -356,7 +379,7 @@ def transition_model_stage(
 
 
 @flow(name="training_pipeline")
-def train_pipeline(experiment_name, config_path):
+def train_pipeline(experiment_name, use_s3, config_path):
     # pylint: disable=too-many-locals
     """
     Main training pipeline
@@ -369,8 +392,6 @@ def train_pipeline(experiment_name, config_path):
     logger.info("Loading configuration")
     config = load_config(config_path)
 
-    # s3_folder_path = config["s3_folder_path"]
-    # dataset_folder_path = config["dataset_folder_path"]
     dataset_path = config["dataset_path"]
     train_path = config["train_path"]
     valid_path = config["valid_path"]
@@ -378,15 +399,31 @@ def train_pipeline(experiment_name, config_path):
     target_var = config["target_variable"]
     trials = config["trials"]
 
-    # will download from s3
-    # logger.info("Downloading the data from s3")
-    # download_s3_data("s3-final-pj", s3_folder_path, dataset_folder_path)
+    logger.info("Getting information about s3")
+    if use_s3:
+        s3 = boto3.client('s3')
+        BUCKET_NAME = os.getenv("BUCKET_NAME")
+        OBJECT_NAME = os.getenv("OBJECT_NAME")
+        raw_data_path = get_save_path()
+
+        logger.info("Download data from s3 bucket to local")
+        download_data_from_s3(
+            s3,
+            raw_data_path,
+            BUCKET_NAME,
+            OBJECT_NAME
+            )
 
     logger.info("Loading the data")
     df = load_data(dataset_path)
 
     logger.info("Splitting the data into train, valid and test")
     data_split(df, train_path, valid_path, test_path)
+
+    if use_s3:
+        logger.info("Saving the data (train, valid, test) to s3 bucket ")
+        for data_path in [train_path, valid_path, test_path]:
+            save_data_to_s3(s3, data_path, BUCKET_NAME)
 
     logger.info("Processing Features")
     X_train, y_train, X_valid, y_valid = process_features(
@@ -406,7 +443,8 @@ def train_pipeline(experiment_name, config_path):
     else:
         prod_model = get_latest_version_model()
         is_register = compare_models(
-            prod_model=prod_model, best_model_meta_data=best_model_meta_data
+            prod_model=prod_model, 
+            best_model_meta_data=best_model_meta_data
         )
 
     if is_register:
@@ -418,4 +456,10 @@ def train_pipeline(experiment_name, config_path):
 
 
 if __name__ == "__main__":
-    train_pipeline(experiment_name, config_path="config.yaml")
+    parser = argparse.ArgumentParser(description='Training pipeline')
+    parser.add_argument('--use_s3', action='store_true', help='Use data from AWS S3')
+    args = parser.parse_args()
+
+    use_s3 = args.use_s3
+
+    train_pipeline(experiment_name, use_s3, config_path="config.yaml")
