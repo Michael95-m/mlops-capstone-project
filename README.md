@@ -100,7 +100,7 @@ Then go to the [streamlit service](http://localhost:8501) and you will see the s
 
 We can deploy the monitoring pipeline that can send an email as an alert if the drift is detected on current data. You can implement it by deploying the workflow in the prefect.
 
-#### 6.1. Create an email block for prefect.
+### 6.1. Create an email block for prefect.
 
 Create an email block by using `make create-email-block`. Before creating email block, you need to set environment variable named
 
@@ -109,7 +109,7 @@ Create an email block by using `make create-email-block`. Before creating email 
 
 The easiest way to set is using **.env** file. You can set the value inside of that file. **EMAIL_PASSWORD** is not your password; it's called the appword. You can check how to generate it at [here](https://support.google.com/mail/answer/185833?hl=en)
 
-#### 6.2. Running the monitoring pipeline.
+### 6.2. Running the monitoring pipeline.
 
 If you want to check the data drift for yesterday's data, just run `make run-monitoring-pipeline`.
 
@@ -117,7 +117,7 @@ If you want to check for specific day's data, run `pipenv run python monitoring/
 
 Eg. This command, `pipenv run python monitoring/send_alerts.py -d 9 -m 8 -y 2023` will run the data drift check for **9 August 2023**. 
 
-#### 6.3. Running the deployed monitoring pipeline
+### 6.3. Running the deployed monitoring pipeline
 
 First, you need to deploy monitoring pipeline with `make deploy-monitoring-pipeline`.
 
