@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import argparse
 import pandas as pd
 from prefect import flow, task, logging
 from sqlalchemy import select, create_engine
@@ -19,14 +20,30 @@ def get_yesterday_info():
         tuple: Start timestamp and end timestamp of yesterday
     """
     yesterday = datetime.now() - timedelta(days=1)
-    start_of_yesterday = datetime(
+    start_of_the_day = datetime(
         yesterday.year, yesterday.month, yesterday.day, 0, 0, 0
     )
-    end_of_yesterday = datetime(
+    end_of_the_day = datetime(
         yesterday.year, yesterday.month, yesterday.day, 23, 59, 59
     )
 
-    return start_of_yesterday, end_of_yesterday
+    return start_of_the_day, end_of_the_day
+
+@task
+def get_day_info(day, month, year):
+    """
+    get the start and end timestamp of the provided day
+    Returns:
+        tuple: start_of_the_day and end_of_the_day of the provided day
+    """
+    start_of_the_day = datetime(
+        year, month, day, 0, 0, 0
+    )
+    end_of_the_day = datetime(
+        year, month, day, 23, 59, 59
+    )
+
+    return start_of_the_day, end_of_the_day
 
 
 @task
@@ -126,20 +143,31 @@ def get_email_credentails():
 
 
 @flow
-def send_alert():
+def send_alert(day, month, year):
     """
     A main function that will send email if the data drift is detected
     """
     logger = logging.get_run_logger()
 
-    logger.info("Getting Yesterday data...")
-    start_of_yesterday, end_of_yesterday = get_yesterday_info()
+    if day and month and year: ## if user entered the date
+        logger.info("Getting day data...")
+        start_of_the_day, end_of_the_day = get_day_info(day, month, year)
+    else:
+        logger.info("Getting Yesterday data...")
+        start_of_the_day, end_of_the_day = get_yesterday_info()
 
     logger.info("Getting Reference data...")
     reference_data = get_reference_data()
 
     logger.info("Getting current data...")
-    current_data = get_current(start_of_yesterday, end_of_yesterday)
+    current_data = get_current(start_of_the_day, end_of_the_day)
+
+    logger.info("Checking the data for the provided day")
+    logger.info("There are %d num of rows for the provided day", len(current_data))
+    if not len(current_data):
+        logger.info("Since there is no data for the provided day")
+        logger.info("Exiting...")
+        return
 
     logger.info("Preparing test...")
     test = get_test()
@@ -154,17 +182,25 @@ def send_alert():
     email_server_credentials = get_email_credentails()
 
     logger.info("Drift Checking and sending email...")
-    yesterday = datetime.now().date() - timedelta(days=1)
+    if day and month and year:
+        date = datetime(year, month, day)
+    else:
+        date = datetime.now().date() - timedelta(days=1)
     if drift_status == "FAIL":
         email_send_message(
             email_server_credentials=email_server_credentials,
-            subject=f"Status about data drift for {yesterday}",
+            subject=f"Status about data drift for {date}",
             msg="Data drift detected. Retrain the model with new data",
             email_to=email_server_credentials.username,
         )
     else:
-        print("drift not detected")
+        logger.info("drift not detected")
 
 
 if __name__ == "__main__":
-    send_alert()
+    parser = argparse.ArgumentParser(description='Monitoring pipeline')
+    day = parser.add_argument("--day", "-d", default=None, type=int, help="Day")
+    month = parser.add_argument("--month", "-m", default=None, type=int, help="Month")
+    year = parser.add_argument("--year", "-y", default=None, type=int, help="Year")
+    args = parser.parse_args()
+    send_alert(args.day, args.month, args.year)

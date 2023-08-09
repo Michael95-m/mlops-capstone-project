@@ -29,7 +29,11 @@ deployments:
   tags: []
   description: null
   entrypoint: monitoring/send_alerts.py:send_alert
-  parameters: {}
+  parameters: {
+    "day": "",
+    "month": "",
+    "year": ""
+  }
   work_pool:
     name: train-pool
   schedule:
