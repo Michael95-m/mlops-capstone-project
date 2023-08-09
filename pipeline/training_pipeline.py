@@ -1,11 +1,12 @@
 # pylint: disable=invalid-name, redefined-outer-name, ungrouped-imports
 import os
-import boto3
 import pickle
+import argparse
 from pathlib import Path
 from datetime import datetime
 
 import yaml
+import boto3
 import mlflow
 import optuna
 import pandas as pd
@@ -18,7 +19,6 @@ from sklearn.metrics import f1_score, recall_score, roc_auc_score, precision_sco
 from mlflow.models.signature import infer_signature
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction import DictVectorizer
-import argparse
 
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_EXPERIMENT_URI", "http://127.0.0.1:5000")
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
@@ -67,19 +67,21 @@ def get_save_path():
     data_path = parent / file_path
     return data_path
 
+
 @task(retries=3)
 def download_data_from_s3(s3, raw_data_path, BUCKET_NAME, OBJECT_NAME):
-    with open(raw_data_path , "wb") as f:
+    with open(raw_data_path, "wb") as f:
         s3.download_fileobj(BUCKET_NAME, OBJECT_NAME, f)
+
 
 @task(retries=3)
 def save_data_to_s3(s3, data_path, BUCKET_NAME):
-
     data_path = Path(data_path)
     OBJECT_NAME = data_path.name
 
     with open(data_path, "rb") as f:
         s3.upload_fileobj(f, BUCKET_NAME, OBJECT_NAME)
+
 
 @task(retries=2, retry_delay_seconds=5)
 def load_config(config_path):
@@ -401,18 +403,13 @@ def train_pipeline(experiment_name, use_s3, config_path):
 
     logger.info("Getting information about s3")
     if use_s3:
-        s3 = boto3.client('s3')
+        s3 = boto3.client("s3")
         BUCKET_NAME = os.getenv("BUCKET_NAME")
         OBJECT_NAME = os.getenv("OBJECT_NAME")
         raw_data_path = get_save_path()
 
         logger.info("Download data from s3 bucket to local")
-        download_data_from_s3(
-            s3,
-            raw_data_path,
-            BUCKET_NAME,
-            OBJECT_NAME
-            )
+        download_data_from_s3(s3, raw_data_path, BUCKET_NAME, OBJECT_NAME)
 
     logger.info("Loading the data")
     df = load_data(dataset_path)
@@ -443,8 +440,7 @@ def train_pipeline(experiment_name, use_s3, config_path):
     else:
         prod_model = get_latest_version_model()
         is_register = compare_models(
-            prod_model=prod_model, 
-            best_model_meta_data=best_model_meta_data
+            prod_model=prod_model, best_model_meta_data=best_model_meta_data
         )
 
     if is_register:
@@ -456,8 +452,8 @@ def train_pipeline(experiment_name, use_s3, config_path):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Training pipeline')
-    parser.add_argument('--use_s3', action='store_true', help='Use data from AWS S3')
+    parser = argparse.ArgumentParser(description="Training pipeline")
+    parser.add_argument("--use_s3", action="store_true", help="Use data from AWS S3")
     args = parser.parse_args()
 
     use_s3 = args.use_s3

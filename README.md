@@ -15,40 +15,40 @@ pipenv install
 
 ### 2. Setup model's registry requirments.
 
-Run `make setup-model-registry`. Do it only for the first time running and yon don't need to do it for next time. It just create the folder named **mnt** inside the home directory to save the metrics and artifacts from mlflow_server service.
+- Run `make setup-model-registry`. (Do it only for the first time running and yon don't need to do it for next time.) 
+- It just create the folder named **mnt** inside the home directory to save the metrics and artifacts from mlflow_server service.
 
 ### 3. Start prefect server.
 
-Start the prefect server in **another terminal** to run the training pipeline. Start by `make prefect-server-start`.
+- Start the prefect server in **another terminal** to run the training pipeline. Start by `make prefect-server-start`.
 
 ### 4. Run the training pipeline.
 
-Run the training pipeline which train **XGBoost** model and registry the best model in the experiment in the **mlflow model registry**. You can run by `make run-training-pipeline`.
+- Run the training pipeline which train **XGBoost** model and registry the best model in the experiment in the **mlflow model registry**. 
+- You can run by `make run-training-pipeline`.
 
-### 4.1. Run the training pipeline with the data from s3.
+### 4.1. Run the training pipeline with the data from s3.(Optional)
 
-You need to configure `aws cli` and create the s3 bucket and upload the data to s3. If you save the data in s3 bucket, you don't need to have the data in the local. You need to set **BUCKET_NAME**, **OBJECT_NAME** etc. in **.env** file in the root directory. Otherwise, you will need to use **export** command to set the environment variable.
+- To run the training pipeline with the data downloaded from s3 (additionally, it will also upload the training, validation and test data to the s3 bucket), you can use `make run-training-pipeline-s3`.
 
-To run the training pipeline with the data downloaded from s3 (additionally, it will also upload the training, validation and test data to the s3 bucket), you can use
 
-```shell
-make run-training-pipeline-s3
-```
+### 5. Deploy the training pipeline in prefect
 
-### 5. Deploy the training pipeline in prefect (This step is only needed for the one time if it succeed.)
+- You need to create the workpool named **train-pool** by using `make create-workpool`. 
 
-You need to create the workpool named **train-pool** by using `make create-workpool`.
-After that, you can deploy the training pipeline by using `make deploy-training-pipeline`.
+- After that, you can deploy the training pipeline by using `make deploy-training-pipeline`.
+
+- This step is only needed for the one time if it succeed.
 
 ### 6. Run the deployed training pipeline 
 
-In order to run the deployed training pipeline, you need to start a worker in a **separate terminal** by `make start-worker`. 
+- In order to run the deployed training pipeline, you need to start a worker in a **separate terminal** by `make start-worker`. 
 
-After starting the worker, you can run the deployed training pipeline by using `make run-deployed-training-pipeline`.
+- After starting the worker, you can run the deployed training pipeline by using `make run-deployed-training-pipeline`.
 
 ### 6.1. Run the deployed training pipeline  with s3 data
 
-It has the same behaviour as **4.1.**. In order to run, use `make run-deployed-training-pipeline-s3`.
+- It has the same behaviour as **4.1.**. In order to run, use `make run-deployed-training-pipeline-s3`.
 
 ## Model Serving
 
@@ -56,7 +56,7 @@ The trained model will be deployed as HTTP service by using *flask* and *gunicor
 
 ### 1. Start the diabetes service 
 
-You can start the diabetes-service by running `make start-diabetes-service`.
+- You can start the diabetes-service by running `make start-diabetes-service`.
 
 ## Model Monitoring
 
@@ -64,9 +64,10 @@ For model monitoring, the **diabetes-service** from **model serving** part and t
 
 ### 1. Preparing reference data
 
-You need to copy validation data named **valid.parquet** from the data folder to the **data** folder inside **monitoring**.
+- You need to copy validation data named **valid.parquet** from the data folder to the **data** folder inside **monitoring**.
 
-Then start diabetes-service by `make start-diabetes-service`. After that,  run `make prepare-reference` to prepare reference data.
+- Then start diabetes-service by `make start-diabetes-service`. 
+- After that,  run `make prepare-reference` to prepare reference data.
 
 ### 2. Start all other services inside docker-compose.yml.
 
@@ -75,6 +76,7 @@ All other services inside docker compose file will be needed to be up and you ca
 ### 3. Create the database named **production** in the postgresql service. 
 
 You need to create the database named **production** to save the prediction result for monitoring purpose. 
+
 This prediction log will become the **current data** for checking the data drift. You can create it by using `make create-db`.
 
 ### 4. Send the simulation data to the monitoring api.
@@ -138,11 +140,3 @@ You can run integration test by `make run-integration-test`. In order to run int
 ### 3. Check the quality of the code by linting tools.
 
 You can run by `make quality-check`.
-
-
-
-
-
-
-
-

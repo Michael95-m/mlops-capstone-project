@@ -1,6 +1,6 @@
+import argparse
 from datetime import datetime, timedelta
 
-import argparse
 import pandas as pd
 from prefect import flow, task, logging
 from sqlalchemy import select, create_engine
@@ -20,14 +20,13 @@ def get_yesterday_info():
         tuple: Start timestamp and end timestamp of yesterday
     """
     yesterday = datetime.now() - timedelta(days=1)
-    start_of_the_day = datetime(
-        yesterday.year, yesterday.month, yesterday.day, 0, 0, 0
-    )
+    start_of_the_day = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0)
     end_of_the_day = datetime(
         yesterday.year, yesterday.month, yesterday.day, 23, 59, 59
     )
 
     return start_of_the_day, end_of_the_day
+
 
 @task
 def get_day_info(day, month, year):
@@ -36,12 +35,8 @@ def get_day_info(day, month, year):
     Returns:
         tuple: start_of_the_day and end_of_the_day of the provided day
     """
-    start_of_the_day = datetime(
-        year, month, day, 0, 0, 0
-    )
-    end_of_the_day = datetime(
-        year, month, day, 23, 59, 59
-    )
+    start_of_the_day = datetime(year, month, day, 0, 0, 0)
+    end_of_the_day = datetime(year, month, day, 23, 59, 59)
 
     return start_of_the_day, end_of_the_day
 
@@ -149,7 +144,7 @@ def send_alert(day, month, year):
     """
     logger = logging.get_run_logger()
 
-    if day and month and year: ## if user entered the date
+    if day and month and year:  ## if user entered the date
         logger.info("Getting day data...")
         start_of_the_day, end_of_the_day = get_day_info(day, month, year)
     else:
@@ -198,7 +193,7 @@ def send_alert(day, month, year):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Monitoring pipeline')
+    parser = argparse.ArgumentParser(description="Monitoring pipeline")
     day = parser.add_argument("--day", "-d", default=None, type=int, help="Day")
     month = parser.add_argument("--month", "-m", default=None, type=int, help="Month")
     year = parser.add_argument("--year", "-y", default=None, type=int, help="Year")
