@@ -2,9 +2,11 @@
 
 ## Problem Description
 
+Dtaset can be downloaded from kaggle at [here](https://www.kaggle.com/datasets/iammustafatz/diabetes-prediction-dataset)
+
 This is the implementation of capstone project for mlops-zoomcamp from [DataTalksClub](https://datatalks.club/). The project provides the **diabetes prediction service** for the patients in the hospital by using the patients' medical information. Let's imagine that the aim is to predict whether the patient has the diabetes or not and take necessary actions based on the result.
 
-The main focus of the project is to apply the MLops principles like experiment tracking, training pipeline, model monitoring pipeline concepts to the machine learing projects rather than getting state-of-the-art accuracy.
+The main focus of the project is to apply the MLops principles like experiment tracking, training pipeline, model monitoring concepts to the machine learing projects rather than getting state-of-the-art accuracy.
 
 ## Training Pipeline
 
@@ -154,6 +156,8 @@ Eg. This command, `pipenv run python monitoring/send_alerts.py -d 9 -m 8 -y 2023
 
 ## Services
 
+All these service except prefect can be started by using **docker compose** by `make start-all-services`. 
+
 |   Service |   Port    |   Interface   |   Description |
 | --- | --- | --- | --- |
 |   mlflow_server   |   5000    |   127.0.0.1   |   MLflow experiment tracking and model registry   |
@@ -168,4 +172,4 @@ Eg. This command, `pipenv run python monitoring/send_alerts.py -d 9 -m 8 -y 2023
 
 You can see the complete system design below.
 
-![drawing|4526x2790](docs/system_design.png)<br>
+![drawing|4526x2790](docs/system_design.jpeg)<br>
