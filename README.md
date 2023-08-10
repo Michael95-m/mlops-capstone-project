@@ -172,4 +172,4 @@ All these service except prefect can be started by using **docker compose** by `
 
 You can see the complete system design below.
 
-![drawing|4526x2790](docs/system_design.jpeg)<br>
+![](docs/system_design.jpeg)<br>
