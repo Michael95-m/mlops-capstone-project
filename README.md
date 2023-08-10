@@ -1,8 +1,8 @@
-# mlops-capstone-project
+# MLOps-Capstone-Project
 
 ## Problem Description
 
-Dtaset can be downloaded from kaggle at [here](https://www.kaggle.com/datasets/iammustafatz/diabetes-prediction-dataset)
+Dataset can be downloaded from kaggle at [here](https://www.kaggle.com/datasets/iammustafatz/diabetes-prediction-dataset)
 
 This is the implementation of capstone project for mlops-zoomcamp from [DataTalksClub](https://datatalks.club/). The project provides the **diabetes prediction service** for the patients in the hospital by using the patients' medical information. Let's imagine that the aim is to predict whether the patient has the diabetes or not and take necessary actions based on the result.
 

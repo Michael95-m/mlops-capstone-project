@@ -1,6 +1,6 @@
 ## Plans to implement
 
-- [ ] Problem description
+- [X] Problem description
 - [X] Prototyping
 - [X] Experiment Tracking
 - [X] Saving model in the model registry 
@@ -10,7 +10,7 @@
 - [X] Containerizing the deployment code
 - [X] Basic model monitoring that calculates and reports metrics
 - [X] Comprehensive model monitoring that sends alerts or runs some conditional workflow
-- [ ] Write the instructions for reproducibility
+- [X] Write the instructions for reproducibility
 - [X] Unit Tests
 - [X] Integration Test
 - [X] Linter and code formatter
