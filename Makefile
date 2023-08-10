@@ -17,6 +17,9 @@ reset-model-registry:
 start-mlflow-server:
 	docker compose up -d mlflow_server
 
+stop-mlflow-server:
+	docker compose down mlflow_server
+
 prefect-server-start:
 	pipenv run prefect server start
 
