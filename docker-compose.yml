@@ -48,8 +48,6 @@ services:
     volumes:
       - "${HOME}/mnt/serve:${HOME}/mnt/serve"
       - "${HOME}/mnt/mlruns:${HOME}/mnt/mlruns"
-    depends_on:
-      - mlflow_server
     ports:
       - "5010:5010"
     networks:
