@@ -28,6 +28,28 @@ services:
     volumes:
       - "${HOME}/mnt/serve:${HOME}/mnt/serve"
       - "${HOME}/mnt/mlruns:${HOME}/mnt/mlruns"
+    depends_on:
+      - mlflow_server
+    ports:
+      - "5010:5010"
+    networks:
+      - backend
+
+  diabetes_test_service:
+    restart:  always
+    build: 
+      context: ./deployment
+      dockerfile: Dockerfile.diabetes_service
+    image: diabetes_service
+    container_name: diabetes_test_service
+    environment:
+      - MLFLOW_EXPERIMENT_URI=http://mlflow_server:5000
+      - IS_TEST_SERVICE=TRUE
+    volumes:
+      - "${HOME}/mnt/serve:${HOME}/mnt/serve"
+      - "${HOME}/mnt/mlruns:${HOME}/mnt/mlruns"
+    depends_on:
+      - mlflow_server
     ports:
       - "5010:5010"
     networks:

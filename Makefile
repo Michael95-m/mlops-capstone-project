@@ -49,7 +49,7 @@ start-diabetes-service:
 	docker compose up -d diabetes_service
 
 start-all-services:
-	docker compose up -d
+	docker compose up -d monitoring_service adminer streamlit_service
 
 prepare-reference:
 	pipenv run python monitoring/prepare_reference_data.py
