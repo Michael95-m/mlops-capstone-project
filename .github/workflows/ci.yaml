@@ -1,0 +1,42 @@
+name: CI-Tests
+
+on:
+  pull_request:
+    branches:
+      - dev*
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Pipenv environment
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          pip install pipenv
+          pipenv install --dev
+
+      - name: Integration Test
+        run: bash integration_test/run.sh
+
+      - name: Run unit tests
+        run: pipenv run pytest test/
+
+      - name: Lint
+        run: pipenv run pylint --recursive=y .
+
+      
