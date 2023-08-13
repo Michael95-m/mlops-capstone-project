@@ -3,7 +3,7 @@ name: CI-Tests
 on:
   pull_request:
     branches:
-      - 'develop'
+      - dev*
 
 jobs:
   test:
