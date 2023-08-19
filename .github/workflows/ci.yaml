@@ -4,9 +4,17 @@ on:
   pull_request:
     branches:
       - dev*
+    paths:
+      - '**.py'       
+      - '**.sh'       
+      - '**Dockerfile'
   push:
     branches:
       - main
+    paths:
+      - '**.py'       
+      - '**.sh'       
+      - '**Dockerfile'
 
 jobs:
   test:
