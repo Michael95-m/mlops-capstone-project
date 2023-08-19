@@ -8,6 +8,13 @@ This is the implementation of capstone project for mlops-zoomcamp from [DataTalk
 
 The main focus of the project is to apply the MLops principles like experiment tracking, training pipeline, model monitoring concepts to the machine learing projects rather than getting state-of-the-art accuracy.
 
+## Process Diagram
+
+You can see the complete system design below.
+
+![](docs/system_design.png)<br>
+
+
 ## Training Pipeline
 
 ### 1. Install the library at the root level.
@@ -167,9 +174,3 @@ All these service except prefect can be started by using **docker compose** by `
 |   monitoring_db   |   5432    |   127.0.0.1   |   Postgresql Database   |
 |   monitoring_adminer   |   8080    |   127.0.0.1   |   Adminer Tools (to check inside database)   |
 |   streamlit_service   |   8501    |   127.0.0.1   |   Streamlit web service to visualize the data and target drift   |
-
-## Process Diagram
-
-You can see the complete system design below.
-
-![](docs/system_design.jpeg)<br>
