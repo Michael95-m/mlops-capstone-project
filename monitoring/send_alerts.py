@@ -198,10 +198,8 @@ def send_alert(day, month, year):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Monitoring pipeline")
-    args_day = parser.add_argument("--day", "-d", default=None, type=int, help="Day")
-    args_month = parser.add_argument(
-        "--month", "-m", default=None, type=int, help="Month"
-    )
-    args_year = parser.add_argument("--year", "-y", default=None, type=int, help="Year")
+    parser.add_argument("--day", "-d", default=None, type=int, help="Day")
+    parser.add_argument("--month", "-m", default=None, type=int, help="Month")
+    parser.add_argument("--year", "-y", default=None, type=int, help="Year")
     args = parser.parse_args()
-    send_alert(day=args.args_day, month=args.args_month, year=args.args_year)
+    send_alert(day=args.day, month=args.month, year=args.year)
