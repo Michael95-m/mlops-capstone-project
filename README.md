@@ -16,6 +16,15 @@ You can see the complete system design below.
 
 ![](docs/system_design.png)<br>
 
+## Contact for questions
+
+- **Name** - Min Khant Maung Maung
+- **Email** - minkhantmgmg.mk19@gmail.com
+
+## Reproducibility
+
+I have reproduced this process on **ubuntu 22.04** on **EC2 instances** with **python 3.9**.
+
 ## Prerequisites
 
 When you tried to run this repository on the cloud servers like **EC2 instances**, we need to do the following steps:
@@ -46,7 +55,7 @@ You need to follow these steps about **Install using the apt repository** from [
 
 If you server didn't have **pip**, ```sudo apt install python3-pip```
 
-### 5. Solving Warning
+### 5. Solving Warning About the path
 
 If you get the warning like ```WARNING: The scripts pip, pip3, pip3.10 and pip3.11 are installed in '/home/ubuntu/.local/bin' which is not on PATH.
 Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location```.
@@ -127,8 +136,11 @@ You need to copy the above variables to the .env file and replace it with your o
 - **AWS_ACCESS_KEY_ID**, **AWS_SECRET_ACCESS_KEY**, **AWS_DEFAULT_REGION** is used for running training pipeline with s3 bucket.**BUCKET_NAME** and **OBJECT_NAME** are used to identity the bucket and the data placed inside it.
 - If you don't specify these, you will get the errors in running with *training pipeline with s3 bucket* and *creating monitoring pipeline*.
 
+**Note:** The following processes are needed to implement sequentially.
 
 ## Training Pipeline
+
+You want to know more about training pipeline, take a look at [this readme](./pipeline/README.md)
 
 ### 1. Setup model's registry requirments
 
@@ -167,12 +179,14 @@ You need to copy the above variables to the .env file and replace it with your o
 
 ### 5.1. Run the deployed training pipeline  with s3 data
 
-- It has the same behaviour as **4.1.**. In order to run, use `make run-deployed-training-pipeline-s3`.
+- It has the same behaviour as **3.1.**. In order to run, use `make run-deployed-training-pipeline-s3`.
 
 ## Model Serving
 
 - The trained model will be deployed as HTTP service by using *flask* and *gunicorn*.
-- **Note:** In order to deploy the model as a service, you need to run the **training pipeline** at least once to have the production model in the mlflow model registry. And you also need to up the **mlflow_server** service to access this model.
+- **Note:** In order to deploy the model as a service, you need to run the **training pipeline** at least once to have the production model in the mlflow model registry. And you also need to up the **mlflow_server** service to access this model (which is already up if you follow the process above)
+
+You want to know more about model serving, take a look at [this readme](./deployment/README.md)
 
 ### 1. Start the diabetes service
 
@@ -181,6 +195,8 @@ You need to copy the above variables to the .env file and replace it with your o
 ## Model Monitoring
 
 For model monitoring, the **diabetes-service** from **model serving** part and the **mlflow_server** service will be needed to be up.
+
+You want to know more about model monitoring, take a look at [this readme](./monitoring/README.md)
 
 ### 1. Preparing reference data
 
@@ -265,6 +281,8 @@ You can easily restart all these services for next time by running ```make start
 
 ## Testing
 
+You want to know more about test cases, take a look at [this readme](./docs/Best_practices.md)
+
 ### 1. Check the unit test.
 
 - You can run unit test by `make run-unit-test`.
@@ -280,7 +298,7 @@ You can easily restart all these services for next time by running ```make start
 
 ## Services
 
-All these service except prefect can be started by using **docker compose** by `make start-all-services`.
+All these service except prefect can be started by using **docker compose** by `make start-all-services`. If you run from the server instances like EC2, you need to place **127.0.0.1** with your **IP address** of the server
 
 |   Service |   Port    |   Interface   |   Description |
 | --- | --- | --- | --- |
@@ -291,3 +309,7 @@ All these service except prefect can be started by using **docker compose** by `
 |   monitoring_db   |   5432    |   127.0.0.1   |   Postgresql Database   |
 |   monitoring_adminer   |   8080    |   127.0.0.1   |   Adminer Tools (to check inside database)   |
 |   streamlit_service   |   8501    |   127.0.0.1   |   Streamlit web service to visualize the data and target drift   |
+
+## Scoring
+
+For the scoring purpose, if you want to find out which steps are implemented throughout this project, check [this](./docs/plan.md)
