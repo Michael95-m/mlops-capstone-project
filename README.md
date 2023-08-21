@@ -1,3 +1,5 @@
+[![CI_TEST](https://github.com/Michael95-m/mlops-capstone-project/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/Michael95-m/mlops-capstone-project/blob/main/.github/workflows/ci.yaml)
+
 # MLOps-Capstone-Project
 
 ## Problem Description

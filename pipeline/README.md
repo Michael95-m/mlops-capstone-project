@@ -26,4 +26,9 @@ For loading the data, the data can be loaded from the local or loaded from s3. I
 
 ## Deploying the training pipeline with prefect
 
-This training workflow can be deployed with the **prefect** service. Deployment configuration about training pipeline can be seen at [here](../prefect.yaml). Deployment name is **deploy_train** and work pool name is **train-pool**
+This training workflow can be deployed with the **prefect** service. With prefect, the workflow can be scheduled and triggered via API. Deployment configuration about training pipeline can be seen at [here](../prefect.yaml). Deployment name is **deploy_train** and work pool name is **train-pool**
+
+#### Prefect Workflow for training pipeline example
+<br>
+
+![Prefect Workflow for training pipeline](../docs/training_pipeline_prefect.png)
