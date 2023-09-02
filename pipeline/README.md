@@ -9,7 +9,7 @@ The training pipeline consists of the following steps.
 5. Hyperparameter tuning with **optuna** library to find the best parameters of **XGBoost** model to find the best model.
 6. After that, it will search the best model that has the highest **f1-score** from the experiments. If there is no registered model in the model registry, the best model will be transitioned into the **production stage**. If there is already a production model in the model registry, the **best model** from the **recent experiments** and the production model will be compared which one has got more **f1-score**. If the best model from recent experiment has more **f1-score**, it will be updated as the **production** model.
 
-For loading the data, the data can be loaded from the local or loaded from s3. I don't like loading the data from s3 because it's not possible in real word if the data size is too big. I feel like loading the data from s3 is more realistic. But loading the data from local is easier one for now because there is no need to export the aws credentials.
+For loading the data, the data can be loaded from the local or loaded from s3. I don't like loading the data from local system (data files saved in github repo) because it's not possible in real word if the data size is too big. I feel like loading the data from s3 is more realistic. But loading the data from local is easier one for now because there is no need to export the aws credentials.
 
 #### Experiment Tracking example
 <br>
