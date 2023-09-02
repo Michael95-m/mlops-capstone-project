@@ -313,3 +313,7 @@ All these service except prefect can be started by using **docker compose** by `
 ## Scoring
 
 For the scoring purpose, if you want to find out which steps are implemented throughout this project, check [this](./docs/plan.md)
+
+## Certificate of Completion
+
+![Certificate of Completion](./docs/mlops-zoomcamp-certificate.jpg)
