@@ -283,7 +283,7 @@ def hpo(X_train, y_train, X_valid, y_valid, n_trials=3):
             mlflow.log_artifact("model/preprocessor.b", artifact_path="artifact")
             mlflow.xgboost.log_model(model, artifact_path="model", signature=signature)
 
-        return -f1
+        return f1
 
     # Create an Optuna study and optimize the objective function
     study = optuna.create_study(direction="maximize")
